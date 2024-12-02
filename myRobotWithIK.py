@@ -3,44 +3,7 @@ from pose_util import *
 from spatialmath import SE3
 from myIK import MyIK
 from myRobot import MyRobot
-from myImageSaver import MyImageSaver
 import rospy
-import cv2
-
-key_map = {
-    ord('!'): -1,  # Shift+1
-    ord('@'): -2,  # Shift+2
-    ord('#'): -3,  # Shift+3
-    ord('$'): -4,  # Shift+4
-    ord('%'): -5,  # Shift+5
-    ord('^'): -6,  # Shift+6
-    ord('1'): 1,   # 1
-    ord('2'): 2,   # 2
-    ord('3'): 3,   # 3
-    ord('4'): 4,   # 4
-    ord('5'): 5,   # 5
-    ord('6'): 6    # 6
-}
-
-def lookup_action(code, t_move=0.02, r_move=5):
-    if abs(code)<=3:
-        movement = t_move * np.sign(code)
-    else:
-        movement = r_move * np.sign(code)
-    if abs(code)==1:
-        return SE3.Tx(movement)
-    elif abs(code)==2:
-        return SE3.Ty(movement)
-    elif abs(code)==3:
-        return SE3.Tz(movement)
-    elif abs(code)==4:
-        return SE3.Rx(movement, unit='deg')
-    elif abs(code)==5:
-        return SE3.Ry(movement, unit='deg')
-    elif abs(code)==6:
-        return SE3.Rz(movement, unit='deg')
-    return None
-
 
 def angle_transfer(joints1, joints2):
     for i in range(len(joints2)):
@@ -49,7 +12,6 @@ def angle_transfer(joints1, joints2):
         while joints2[i] - joints1[i] < -np.pi:
             joints2[i] += 2 * np.pi
     return joints2
-
 
 
 class MyRobotWithIK(MyRobot):
@@ -103,30 +65,31 @@ class MyRobotWithIK(MyRobot):
     def goto_poses(self, poses, dry_run, coef=3):
         joints = super().get_joints()
         traj = self.myIK.plan_trajectory(poses, joints)
-        self.myIK.show_traj(traj, loop=dry_run)
-        if not dry_run:
+        if dry_run:
+            self.myIK.show_traj(traj, loop=dry_run)
+        else:
             for joints_star in traj:
                 joints = super().get_joints()
                 super().move_joints_smooth(joints_star, coef=coef, wait=False)
 
 
 if __name__ == "__main__":
-    rospy.init_node('ik_step', anonymous=True)
-    image_saver = MyImageSaver(cameraNS='camera')
-    framedelay = 1000//20
+    dry_run = True
+    rospy.init_node('test_with_IK', anonymous=False)
+    
+    from myIK import *
+    robot = MyRobotWithIK(MyIK())
 
-    robot = MyRobotWithIK(myIK=MyIK())    
+    init_pose = robot.get_pose()
+    ax = visualize_poses(init_pose, label='init pose', autoscale=False, ax=None)
+    target_pose = init_pose.copy()
+    target_pose[2] -= 0.3
+    
+    # points = circle_pose(init_pose, target_pose[:3], radius=0.1, num_points=100)
+    # points = rectangle_points(init_pose[:3], x=0.1, y=0.1)
 
-    while not rospy.is_shutdown():
-        frame = image_saver.rgb_image
-        cv2.imshow('Camera', frame)
-        key = cv2.waitKey(framedelay) & 0xFF 
-        if key == ord('q'):
-            break
-        elif key in key_map:
-            code  = key_map[key]
-            print(f"action {code}")
-            action = lookup_action(code)
-            se3_pose = robot.step(action=action, wait=False)
-            se3_pose.printline()
-            image_saver.record()
+    # points[:, 5] = init_pose[5]
+    points = circle_points(init_pose[:3], radius=0.1, num_points=50)
+    visualize_poses(points, label="points to plan", color='y', autoscale=False, ax=ax)
+    for _ in range(5):
+        robot.goto_poses(points, dry_run=False, coef=3)

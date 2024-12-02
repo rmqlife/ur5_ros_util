@@ -36,10 +36,6 @@ class Vaccum(MyIO):
         super.set_io_state(0)
 
 
-
-
-
-
 if __name__ == "__main__":
     # Initialize the ROS node
     rospy.init_node('set_io_client')

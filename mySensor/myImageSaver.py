@@ -5,7 +5,6 @@ import cv2
 import time
 import os
 
-
 class MyImageSaver:
     def __init__(self, cameraNS="camera"):
         self.bridge = CvBridge()

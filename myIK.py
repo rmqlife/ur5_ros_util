@@ -105,30 +105,24 @@ class MyIK:
     def show_traj(self, traj, loop=True):
         self.robot.plot(traj, backend='pyplot', loop=loop)
 
-    
+
+
 if __name__ == "__main__":
     joints = [-1.57, -1.57, 1.57, -1.57, -1.57, 0]
+
     myIK = MyIK()
-    pose = myIK.fk(joints)
-    print('rtb', pose)
-    ax = visualize_poses(pose, label='init pose', autoscale=False, ax=None)
 
-    init_pose = pose.copy()
-    if 1:
-        target_pose = init_pose.copy()
-        target_pose[2] -= 0.3
-        # points = circle_pose(init_pose, target_pose[:3], radius=0.1, num_points=50)
-        points = circle_points(init_pose[:3], radius=0.2, num_points=50)
-        # points = rectangle_points(init_pose[:3], x=0.1, y=0.1)
-        visualize_poses(points, label="points to plan", color='y', autoscale=False, ax=ax)
+    init_pose = myIK.fk(joints)
+    ax = visualize_poses(init_pose, label='init pose', autoscale=False, ax=None)
+    target_pose = init_pose.copy()
+    target_pose[2] -= 0.3
+    # points = circle_pose(init_pose, target_pose[:3], radius=0.1, num_points=50)
+    points = circle_points(init_pose[:3], radius=0.2, num_points=50)
+    # points = rectangle_points(init_pose[:3], x=0.1, y=0.1)
+    visualize_poses(points, label="points to plan", color='y', autoscale=False, ax=ax)
 
-        traj = myIK.plan_trajectory(points, joints)
+    traj = myIK.plan_trajectory(points, joints)
+    myIK.show_traj(traj,loop=True)
 
-        # validate the planned trajectory
-        for j in traj:
-            poses = myIK.fk(j)
-        visualize_poses(poses, label="traj points", color='g', autoscale=False, ax=ax)
-        plt.show()
 
-        myIK.show_traj(traj,loop=True)
 

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 import rospy
-from myOmni import MyOmni
+from mySensor.myOmni import MyOmni
+from mySensor.myIO import MyIO
 from myRobot import *
-from myIO import MyIO
 
 if __name__ == '__main__':
     try:

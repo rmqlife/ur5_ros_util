@@ -1,5 +1,4 @@
 import rospy
-import matplotlib.pyplot as plt
 from geometry_msgs.msg import WrenchStamped
 import numpy as np
 
@@ -27,7 +26,6 @@ class MyFTSensor:
 
         if omni_flag:
             self.force_publisher = rospy.Publisher('/phantom/phantom/force_feedback', WrenchStamped, queue_size=10)
-
 
     def subscriber_callback(self, data):
         self.force = force2array(data.wrench.force)
