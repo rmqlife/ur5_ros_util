@@ -1,11 +1,11 @@
 import numpy as np
 from pose_util import *
 from spatialmath import SE3
-from myIK import MyIK
-from myRobotWithIK import MyRobotWithIK
+from myRobotWithIK import init_robot
 from mySensor.myImageSaver import MyImageSaver
 import rospy
 import cv2
+from myBag import MyBag
 
 key_map = {
     ord('!'): -1,  # Shift+1
@@ -22,7 +22,7 @@ key_map = {
     ord('6'): 6    # 6
 }
 
-def lookup_action(code, t_move=0.02, r_move=5):
+def lookup_action(code, t_move=0.005, r_move=1):
     if abs(code)<=3:
         movement = t_move * np.sign(code)
     else:
@@ -55,8 +55,12 @@ if __name__ == "__main__":
     image_saver = MyImageSaver(cameraNS='camera')
     framedelay = 1000//20
 
-    robot = MyRobotWithIK(myIK=MyIK())    
-
+    robot = init_robot()
+    mybag = MyBag('data/force_action.json')
+    from mySensor.myFTSensor import MyFTSensor
+    ft_sensor = MyFTSensor()    
+    
+    
     while not rospy.is_shutdown():
         frame = image_saver.rgb_image
         cv2.imshow('Camera', frame)
@@ -67,6 +71,11 @@ if __name__ == "__main__":
             code  = key_map[key]
             print(f"action {code}")
             action = lookup_action(code)
-            se3_pose = robot.step(action=action, wait=False)
+            se3_pose = robot.step(action=action, wait=True)
             se3_pose.printline()
             image_saver.record()
+
+            mybag.record("action", SE3_to_pose(action))
+            mybag.record("pose", SE3_to_pose(se3_pose))
+            mybag.record("force", ft_sensor.force)
+            mybag.record("torque", ft_sensor.torque)

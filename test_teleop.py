@@ -15,7 +15,6 @@ if __name__ == '__main__':
     
         print('press gray button to start function')
         while not rospy.is_shutdown():
-
             teleop_sign_prev = teleop_sign
             if hold_to_control:
                 teleop_sign = my_omni.gray_button

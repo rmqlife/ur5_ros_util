@@ -1,6 +1,5 @@
 import numpy as np
 from pose_util import *
-from spatialmath import SE3
 from myIK import MyIK
 from myRobot import MyRobot
 import rospy
@@ -73,12 +72,17 @@ class MyRobotWithIK(MyRobot):
                 super().move_joints_smooth(joints_star, coef=coef, wait=False)
 
 
+def init_robot():
+    return MyRobotWithIK(MyIK())
+
+
+
 if __name__ == "__main__":
     dry_run = True
     rospy.init_node('test_with_IK', anonymous=False)
     
     from myIK import *
-    robot = MyRobotWithIK(MyIK())
+    robot = init_robot()
 
     init_pose = robot.get_pose()
     ax = visualize_poses(init_pose, label='init pose', autoscale=False, ax=None)
@@ -86,9 +90,9 @@ if __name__ == "__main__":
     target_pose[2] -= 0.3
     
     # points = circle_pose(init_pose, target_pose[:3], radius=0.1, num_points=100)
-    # points = rectangle_points(init_pose[:3], x=0.1, y=0.1)
-
     # points[:, 5] = init_pose[5]
+
+    # points = rectangle_points(init_pose[:3], x=0.1, y=0.1)
     points = circle_points(init_pose[:3], radius=0.1, num_points=50)
     visualize_poses(points, label="points to plan", color='y', autoscale=False, ax=ax)
     for _ in range(5):

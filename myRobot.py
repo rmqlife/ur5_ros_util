@@ -83,6 +83,12 @@ class MyRobot:
         else:
             rospy.sleep(duration)
 
+    def hold(self, duration): # duration in seconds
+        time_slice = 0.005
+        joints = self.get_joints()
+        for _ in range(int(duration//time_slice)):
+            self.move_joints(joints=joints, duration=time_slice, wait=False)
+            rospy.sleep(time_slice)
 
 if __name__ == '__main__':
     rospy.init_node('my_robot_ns_node')
