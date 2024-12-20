@@ -43,7 +43,7 @@ class MyRobotWithIK(MyRobot):
         return self.goto_pose(pose_se3_new, wait)
 
 
-    def step(self, action, wait):
+    def step(self, action, wait, coef=3):
         '''
         if wait ==True:
             wait until reach targets
@@ -55,7 +55,7 @@ class MyRobotWithIK(MyRobot):
         #     # rotation keep the x, y, z
         pose_se3_new.t = pose_se3.t + action.t
         
-        if self.goto_pose(pose_se3_new, wait)==True:
+        if self.goto_pose(pose_se3_new, wait, coef=coef)==True:
             return pose_se3_new
         else:
             return pose_se3

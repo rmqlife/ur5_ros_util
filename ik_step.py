@@ -56,7 +56,7 @@ if __name__ == "__main__":
     framedelay = 1000//20
 
     robot = init_robot()
-    mybag = MyBag('data/force_action.json')
+    mybag = MyBag()
     from mySensor.myFTSensor import MyFTSensor
     ft_sensor = MyFTSensor()    
     
@@ -71,7 +71,7 @@ if __name__ == "__main__":
             code  = key_map[key]
             print(f"action {code}")
             action = lookup_action(code)
-            se3_pose = robot.step(action=action, wait=True)
+            se3_pose = robot.step(action=action, wait=False)
             se3_pose.printline()
             image_saver.record()
 

@@ -40,7 +40,7 @@ class MyFTSensor:
 
 if __name__ == "__main__":
     rospy.init_node('my_ft_sensor_test_node')
-    FTSensor = MyFTSensor(omni_flag=True)
+    FTSensor = MyFTSensor(omni_flag=False)
     rospy.sleep(1)  # Adjust the time as needed
 
     while not rospy.is_shutdown():

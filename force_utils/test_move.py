@@ -17,7 +17,7 @@ if __name__ == "__main__":
     print("init pose at", init_pose)
 
     goal_pose = init_pose.copy()
-    goal_pose[2] -= 0.2
+    goal_pose[2] -= 0.1
     waypoints = [init_pose, goal_pose]
     # waypoints = circle_points(init_pose[:3], radius=0.1, num_points=50)
 
@@ -25,3 +25,5 @@ if __name__ == "__main__":
     for _ in range(5):
         poses += waypoints
     robot.goto_poses(poses, dry_run=False, coef=3)
+
+    

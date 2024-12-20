@@ -54,7 +54,7 @@ class MyImageSaver:
 
 if __name__ == '__main__':
     rospy.init_node('image_saver')
-    image_saver = MyImageSaver()
+    image_saver = MyImageSaver(cameraNS='camera')
     framedelay = 1000//20
 
     # Example usage: Save RGB and depth images

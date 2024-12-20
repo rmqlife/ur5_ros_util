@@ -57,5 +57,3 @@ if __name__ == '__main__':
         mybag.record('robot pose', robot.get_pose())
         rospy.sleep(1/2)
         
-    # When shutdown, export data to JSON file
-    # array_saver.export_data()
