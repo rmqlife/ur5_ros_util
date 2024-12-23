@@ -21,3 +21,25 @@ https://github.com/ros-perception/vision_opencv/issues/509, downgrade the python
  conda install python=3.8.10
 ```
 
+### problem
+```bash
+WARNING: disk usage in log directory [/home/rmqlife/.ros/log] is over 1GB.
+It's recommended that you use the 'rosclean' command.
+```
+### solution
+Run the following command to clean the log directory:
+```bash
+rosclean purge
+```
+This will remove old logs that are no longer needed and help free up space.
+
+
+### problem: attribute error or topic missing
+```bash
+AttributeError: 'MyFTSensor' object has no attribute 'force'
+```
+### solution
+make sure run the following and the rosnode name is available for the system
+```python 
+rospy.init_node('test_node', anonymous=True)
+```

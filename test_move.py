@@ -19,11 +19,12 @@ if __name__ == "__main__":
     goal_pose = init_pose.copy()
     goal_pose[2] -= 0.1
     waypoints = [init_pose, goal_pose]
-    # waypoints = circle_points(init_pose[:3], radius=0.1, num_points=50)
+    
+    waypoints = circle_points(init_pose[:3], radius=0.1, num_points=50)
 
     poses = []
     for _ in range(5):
         poses += waypoints
     robot.goto_poses(poses, dry_run=False, coef=3)
 
-    
+    from setuptools import setup, find_packages

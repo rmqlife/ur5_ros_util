@@ -25,6 +25,7 @@ class MyRobotWithIK(MyRobot):
     def get_pose_se3(self):
         return pose_to_SE3(self.get_pose())
     
+    # in SE3 format
     def goto_pose(self, pose, wait, coef=3):
         joints = super().get_joints()
         joints_star = self.myIK.ik_se3(pose, q=joints)

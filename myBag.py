@@ -36,6 +36,11 @@ class MyBag:
             filename = f"data/output_{timestamp}.json"
         rospy.loginfo(f"Exporting data to {filename}...")
 
+        # for the data type as numpy, convert it to list
+        for key in self.data:
+            if isinstance(self.data[key], np.ndarray):
+                self.data[key] = self.data[key].tolist()
+
         with open(filename, 'w') as json_file:
             json.dump(self.data, json_file, default=str, indent=4)  # Convert datetime, etc. to strings
         rospy.loginfo("Data exported successfully.")

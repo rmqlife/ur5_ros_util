@@ -8,9 +8,6 @@ from myRobotWithIK import init_robot
 from mySensor.myFTSensor import MyFTSensor
 import rospy
 
-FORCE_THRESHOLD = 0.3
-
-
 def normalize_to_fixed_length(force, length=1.0):
     """
     Normalize each force vector to have a fixed length (default is 1.0).
@@ -93,30 +90,31 @@ class FTModel():
         new_action *= 0.3
         return new_action
 
-if __name__ == "__main__":
+def build_ft_model(data_path):
     mybag = myBag.MyBag('data/force_xy_ring_z_tissue.json')
-    forces, actions = clean_bag(mybag, force_threshold=FORCE_THRESHOLD)
+    forces, actions = clean_bag(mybag, force_threshold=0.3)
 
-    model = FTModel(forces, actions)
+    return FTModel(forces, actions)
 
+
+if __name__ == "__main__":
+
+    model = build_ft_model(data_path='data/force_xy_ring_z_tissue.json')
     # Example prediction
     # Assuming we want to predict the action for a new force measurement
-    new_force = np.array([0.010287844575941563, -0.005950129125267267, 20])
-    new_action = model.predict(new_force)
-    print("new action", new_action)
+    example_force = np.array([0.010287844575941563, -0.005950129125267267, 20])
+    print("new action", model.predict(example_force))
 
 
-    rospy.init_node('test_compliant_ctr', anonymous=True)
+    rospy.init_node('test_compliant_ct', anonymous=False)
     robot = init_robot()
     FTSensor = MyFTSensor(omni_flag=False)
     while not rospy.is_shutdown():
         # print(f"force{FTSensor.force}, torque{FTSensor.torque}", )
         rospy.sleep(0.01)
-        new_force = FTSensor.force
-        if np.linalg.norm(new_force) > 1:
-            print(f"Force detected: {new_force}")
-            new_action = find_closest_action(new_force, forces, actions)
-
-            new_action = model.predict(new_force)
-            print(f"Predicted action: {new_action}")
-            robot.step(action=pose_to_SE3(new_action), wait=False, coef=1)
+        force = FTSensor.force
+        if np.linalg.norm(force) > 1:
+            print(f"Force detected: {force}")
+            action = model.predict(force)
+            print(f"Predicted action: {action}")
+            robot.step(action=pose_to_SE3(action), wait=False, coef=1)
