@@ -1,7 +1,7 @@
 import numpy as np
-from pose_util import *
-from myIK import MyIK
-from myRobot import MyRobot
+from .pose_util import *
+from .myIK import MyIK
+from .myRobot import MyRobot
 import rospy
 
 def angle_transfer(joints1, joints2):
@@ -52,15 +52,25 @@ class MyRobotWithIK(MyRobot):
         pose_se3 = pose_to_SE3(self.get_pose())
         # print('action print'), action.printline()
         pose_se3_new = action * pose_se3  #action is based on base frame
-        # if np.linalg.norm(action.t)<0.001:
-        #     # rotation keep the x, y, z
         pose_se3_new.t = pose_se3.t + action.t
         
         if self.goto_pose(pose_se3_new, wait, coef=coef)==True:
             return pose_se3_new
         else:
             return pose_se3
+    
+    def step_duration(self, action, duration):
+        pose_se3 = pose_to_SE3(self.get_pose())
+        # print('action print'), action.printline()
+        pose_se3_new = action * pose_se3  #action is based on base frame
+        pose_se3_new.t = pose_se3.t + action.t
         
+        joints = super().get_joints()
+        joints_star = self.myIK.ik_se3(pose_se3_new, q=joints)
+        # compute the difference between joints and joints_star
+        joints_star = angle_transfer(joints, joints_star)
+        return super().move_joints(joints_star, duration=duration, wait=False)
+
 
     def goto_poses(self, poses, dry_run, coef=3):
         joints = super().get_joints()
@@ -80,7 +90,7 @@ def init_robot():
 
 if __name__ == "__main__":
     dry_run = True
-    rospy.init_node('test_with_IK', anonymous=False)
+    rospy.init_node('test_with_IK', anonymous=True)
     
     from myIK import *
     robot = init_robot()

@@ -10,6 +10,9 @@ roslaunch:
 alias start_robot1="roslaunch ur_robot_driver ur5_bringup.launch limited:=true robot_ip:=192.168.0.100"
 ```
 
+
+## Q&A
+
 ### problem
 ```bash
  ImportError: /lib/x86_64-linux-gnu/libp11-kit.so.0: undefined symbol: ffi_type_pointer, version LIBFFI_BASE_7.0 #509 
@@ -43,3 +46,18 @@ make sure run the following and the rosnode name is available for the system
 ```python 
 rospy.init_node('test_node', anonymous=True)
 ```
+
+
+### git push problem
+update your Git repository URL to use SSH
+```bash
+git remote set-url origin git@github.com:rmqlife/ur5_ros_util.git
+```
+
+
+
+## Quick Notes
+
+#### DiffTactile: A Physics-based Differentiable Tactile Simulator for Contact-rich Robotic Manipulation
+https://difftactile.github.io/
+

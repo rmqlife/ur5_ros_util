@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import rospy
-from myRobot import *
+from myPlanner import MyRobot
+from myPlanner import rad2deg, deg2rad
 
 def shake(robot, shake_delta):
     joint_degrees = rad2deg(robot.get_joints())

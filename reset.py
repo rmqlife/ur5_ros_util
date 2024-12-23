@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
 import rospy
-from myRobot import MyRobot
-from myConfig import MyConfig  # Import the MyConfig class
+from myPlanner import MyRobot
+from myPlanner import MyConfig  # Import the MyConfig class
 import sys
 
 def main(config_name):

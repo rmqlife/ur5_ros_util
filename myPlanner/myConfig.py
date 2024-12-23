@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import json
-from myRobot import MyRobot  # Import your MyRobot class
+from .myRobot import MyRobot  # Import your MyRobot class
 import sys  # Import the sys module for command-line arguments
 import rospy
 

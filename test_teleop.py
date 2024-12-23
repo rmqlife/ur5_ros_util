@@ -2,7 +2,7 @@
 import rospy
 from mySensor.myOmni import MyOmni
 from mySensor.myIO import MyIO
-from myRobot import *
+from myPlanner import *
 
 if __name__ == '__main__':
     try:

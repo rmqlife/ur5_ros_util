@@ -1,5 +1,7 @@
-from myBag import *
-from pose_util import pose_to_SE3
+from .myBag import *
+from .pose_util import pose_to_SE3
+from .myRobotWithIK import init_robot
+
 def build_bounding_box(filename = "data/boundingbox_traj.json"):
     mybag = MyBag(filename)
     print("loaded traj len:", len(mybag.data['robot pose']))
@@ -51,7 +53,6 @@ class MyBound:
 
 if __name__ == '__main__':
     rospy.init_node('bounding_box_hold', anonymous=False)
-    from myRobotWithIK import init_robot
     robot = init_robot()
     rospy.sleep(1)  # Adjust the time as needed
 

@@ -54,7 +54,7 @@ if __name__ == '__main__':
     from mySensor.myFTSensor import MyFTSensor
     ft_sensor = MyFTSensor()
     
-    from myRobotWithIK import init_robot
+    from myPlanner.myRobotWithIK import init_robot
     robot = init_robot()
 
     while not rospy.is_shutdown():

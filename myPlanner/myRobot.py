@@ -3,22 +3,8 @@ import rospy
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 from sensor_msgs.msg import JointState
 import numpy as np
-import math
+from .pose_util import *
 
-def deg2rad(deg):
-    return [math.radians(degree) for degree in deg]
-
-def rad2deg(radians):
-    # Convert radians to degrees for each joint value
-    return [math.degrees(rad) for rad in radians]
-
-def swap_order(i, j, k):
-    i[j], i[k] = i[k], i[j]
-    return i
-
-def reverse_sign(i, j):
-    i[j] = -i[j]
-    return i
 
 class MyRobot:
     def __init__(self):

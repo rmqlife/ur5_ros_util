@@ -5,7 +5,7 @@ if __name__ == "__main__":
     image_saver = MyImageSaver(cameraNS='camera')
     framedelay = 1000//20
 
-    robot = init_robot()
+    robot = init_robot_with_ik()
     mybag = MyBag()
     from mySensor.myFTSensor import MyFTSensor
     ft_sensor = MyFTSensor()    

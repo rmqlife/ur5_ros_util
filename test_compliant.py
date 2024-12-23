@@ -1,10 +1,8 @@
-import myBag
 import numpy as np
 from sklearn.linear_model import Lasso
 from sklearn.metrics.pairwise import euclidean_distances
-from pose_util import *
+from myPlanner import *
 from optimize_util import myLinearProg
-from myRobotWithIK import init_robot
 from mySensor.myFTSensor import MyFTSensor
 import rospy
 
@@ -87,7 +85,6 @@ class FTModel():
         coef = myLinearProg(self.forces.T, new_force)
         print("FTModel coef", coef)
         new_action = np.dot(coef, self.actions)
-        new_action *= 0.3
         return new_action
 
 def build_ft_model(data_path):
@@ -106,15 +103,18 @@ if __name__ == "__main__":
     print("new action", model.predict(example_force))
 
 
-    rospy.init_node('test_compliant_ct', anonymous=False)
-    robot = init_robot()
+    rospy.init_node('compliant_control123', anonymous=False)
+    robot = init_robot_with_ik()
     FTSensor = MyFTSensor(omni_flag=False)
+    rospy.sleep(1)
     while not rospy.is_shutdown():
         # print(f"force{FTSensor.force}, torque{FTSensor.torque}", )
-        rospy.sleep(0.01)
+        rospy.sleep(0.05)
         force = FTSensor.force
-        if np.linalg.norm(force) > 1:
+        force_norm = np.linalg.norm(force)
+        if force_norm > 0.2:
             print(f"Force detected: {force}")
             action = model.predict(force)
+            action *= force_norm * 0.01
             print(f"Predicted action: {action}")
-            robot.step(action=pose_to_SE3(action), wait=False, coef=1)
+            robot.step_duration(action=pose_to_SE3(action), duration=0.05)

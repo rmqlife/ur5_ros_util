@@ -1,16 +1,13 @@
 import numpy as np
-from pose_util import *
-from myIK import MyIK
-from myRobotWithIK import MyRobotWithIK
+from myPlanner.pose_util import *
+from myPlanner import circle_points, init_robot_with_ik
 import rospy
-
 
 if __name__ == "__main__":
     dry_run = True
     rospy.init_node('test_move', anonymous=False)
     
-    from myIK import *
-    robot = MyRobotWithIK(MyIK())
+    robot = init_robot_with_ik()
 
     init_pose = robot.get_pose()
 
@@ -26,5 +23,3 @@ if __name__ == "__main__":
     for _ in range(5):
         poses += waypoints
     robot.goto_poses(poses, dry_run=False, coef=3)
-
-    from setuptools import setup, find_packages

@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import roboticstoolbox as rtb
-from pose_util import *
+from .pose_util import *
 import math
 from spatialmath import SE3
 

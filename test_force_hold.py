@@ -1,12 +1,11 @@
 import rospy
-from myIK import *
-from myRobotWithIK import MyRobotWithIK
-from mySensor.myFTSensor import MyFTSensor
+from myPlanner import init_robot_with_ik
+from mySensor import MyFTSensor
 import numpy as np
 
 if __name__ == "__main__":
     rospy.init_node('test_stop', anonymous=False)
-    robot = MyRobotWithIK(MyIK())
+    robot = init_robot_with_ik
     FTSensor = MyFTSensor(omni_flag=False)
     rospy.sleep(1)  # Adjust the time as needed
 

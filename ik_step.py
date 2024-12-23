@@ -1,11 +1,14 @@
 import numpy as np
-from pose_util import *
+# from myPlanner import *
 from spatialmath import SE3
-from myRobotWithIK import init_robot
-from mySensor.myImageSaver import MyImageSaver
+from myPlanner import init_robot_with_ik
+from myPlanner import MyBag
+from myPlanner.pose_util import *
+from mySensor import MyImageSaver
+from mySensor import MyFTSensor
+
 import rospy
 import cv2
-from myBag import MyBag
 
 key_map = {
     ord('!'): -1,  # Shift+1
@@ -55,9 +58,8 @@ if __name__ == "__main__":
     image_saver = MyImageSaver(cameraNS='camera')
     framedelay = 1000//20
 
-    robot = init_robot()
+    robot = init_robot_with_ik()
     mybag = MyBag()
-    from mySensor.myFTSensor import MyFTSensor
     ft_sensor = MyFTSensor()    
     
     

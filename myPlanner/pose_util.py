@@ -205,6 +205,23 @@ def poses_error(poses1, poses2):
     poses2 = vec2mat(poses2)
     return np.mean(np.linalg.norm(poses1[:, :3] - poses2[:, :3], axis=1))
 
+
+def deg2rad(deg):
+    return [math.radians(degree) for degree in deg]
+
+def rad2deg(radians):
+    # Convert radians to degrees for each joint value
+    return [math.degrees(rad) for rad in radians]
+
+def swap_order(i, j, k):
+    i[j], i[k] = i[k], i[j]
+    return i
+
+def reverse_sign(i, j):
+    i[j] = -i[j]
+    return i
+
+
 if __name__=="__main__":
     folder = 'slam_data/0613-slam-aruco'
     joints_traj = np.load(f'{folder}/traj.npy')
