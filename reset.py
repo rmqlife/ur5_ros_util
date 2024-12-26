@@ -14,7 +14,7 @@ def main(config_name):
         my_robot = MyRobot()  # Initialize the robot object
 
         # Create a JointConfig instance
-        joint_configs = MyConfig('config/robot_joints.json')
+        joint_configs = MyConfig('config/saved_joints.json')
 
         # Check if the reset pose is already saved, and load it if available
         if joint_configs.get(config_name):

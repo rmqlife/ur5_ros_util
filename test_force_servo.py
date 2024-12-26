@@ -1,8 +1,8 @@
 # given a target force, the action should be use the function compliant_force_model(current force - target_force)
-from tests.test_compliant import *
+from test_compliant import *
 if __name__ == "__main__":
 
-    target_force = [0, 0, -0.5]
+    target_force = [0, 0, -1]
     model = build_ft_model(data_path='data/force_xy_ring_z_tissue.json')
 
     rospy.init_node('force_servoing123', anonymous=False)
@@ -18,6 +18,6 @@ if __name__ == "__main__":
         if np.linalg.norm(force_delta) > 0.2:
             print(f"Force delta detected: {force_delta}")
             action = model.predict(force_delta)
-            action *= 0.05
+            action *= 0.08
             print(f"Predicted action: {action}")
             robot.step(action=pose_to_SE3(action), wait=False, coef=3)

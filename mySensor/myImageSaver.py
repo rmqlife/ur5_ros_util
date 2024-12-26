@@ -42,7 +42,13 @@ class MyImageSaver:
         image_filename = os.path.join(self.folder_path,f"{prefix}_{self.count}.png")
         cv2.imwrite(image_filename, image)
         print(f"write to {image_filename}")
-        
+    
+
+    def record(self):
+        self.save_image(self.rgb_image, "rgb")
+        self.save_image(self.depth_image, 'depth')
+        self.count += 1
+
     def spin(self):
         rospy.spin()
 

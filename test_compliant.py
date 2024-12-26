@@ -86,6 +86,7 @@ class FTModel():
         print("FTModel coef", coef)
         new_action = np.dot(coef, self.actions)
         return new_action
+        
 
 def build_ft_model(data_path):
     mybag = myBag.MyBag('data/force_xy_ring_z_tissue.json')
@@ -95,8 +96,8 @@ def build_ft_model(data_path):
 
 
 if __name__ == "__main__":
-
-    model = build_ft_model(data_path='data/force_xy_ring_z_tissue.json')
+    # force_xy_ring_z_tissue
+    model = build_ft_model(data_path='data/tape_rotation.json')
     # Example prediction
     # Assuming we want to predict the action for a new force measurement
     example_force = np.array([0.010287844575941563, -0.005950129125267267, 20])
@@ -107,14 +108,16 @@ if __name__ == "__main__":
     robot = init_robot_with_ik()
     FTSensor = MyFTSensor(omni_flag=False)
     rospy.sleep(1)
+
+    init_force = FTSensor.force.copy()
     while not rospy.is_shutdown():
         # print(f"force{FTSensor.force}, torque{FTSensor.torque}", )
         rospy.sleep(0.05)
-        force = FTSensor.force
+        force = FTSensor.force - init_force
         force_norm = np.linalg.norm(force)
         if force_norm > 0.2:
             print(f"Force detected: {force}")
             action = model.predict(force)
-            action *= force_norm * 0.01
             print(f"Predicted action: {action}")
+            action *= force_norm * 0.01
             robot.step_duration(action=pose_to_SE3(action), duration=0.05)
