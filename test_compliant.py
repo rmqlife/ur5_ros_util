@@ -6,6 +6,8 @@ from optimize_util import myLinearProg
 from mySensor.myFTSensor import MyFTSensor
 import rospy
 
+take_torque = False
+
 def normalize_to_fixed_length(force, length=1.0):
     """
     Normalize each force vector to have a fixed length (default is 1.0).
@@ -16,10 +18,17 @@ def normalize_to_fixed_length(force, length=1.0):
 
 
 def clean_bag(mybag, force_threshold):
-    force = np.array(mybag.data['force'])
     action = np.array(mybag.data['action'])
-    force = force.reshape(force.shape[0], -1)
     action = action.reshape(action.shape[0], -1)
+    force = np.array(mybag.data['force'])
+    force = force.reshape(force.shape[0], -1)
+
+    if take_torque:
+        torque = np.array(mybag.data['torque'])
+        torque = torque.reshape(torque.shape[0], -1)
+        force = np.concatenate((force, torque), axis=1)
+
+    
     print("Size of force data:", force.shape)
     print("Size of action data:", action.shape)
     # Reshape the data for the model
@@ -94,30 +103,32 @@ def build_ft_model(data_path):
 
     return FTModel(forces, actions)
 
+def get_FT(sensor):
+    if take_torque:
+        return np.concatenate((sensor.force, sensor.torque))
+    else:
+        return sensor.force
 
 if __name__ == "__main__":
     # force_xy_ring_z_tissue
-    model = build_ft_model(data_path='data/tape_rotation.json')
-    # Example prediction
-    # Assuming we want to predict the action for a new force measurement
-    example_force = np.array([0.010287844575941563, -0.005950129125267267, 20])
-    print("new action", model.predict(example_force))
-
+    model = build_ft_model(data_path='data/force_xy_ring_z_tissue.json')
 
     rospy.init_node('compliant_control123', anonymous=False)
     robot = init_robot_with_ik()
     FTSensor = MyFTSensor(omni_flag=False)
     rospy.sleep(1)
 
-    init_force = FTSensor.force.copy()
+    force = get_FT(FTSensor)
+    print(f"Combined force and torque: {force}")
+    init_force = get_FT(FTSensor).copy()
     while not rospy.is_shutdown():
         # print(f"force{FTSensor.force}, torque{FTSensor.torque}", )
         rospy.sleep(0.05)
-        force = FTSensor.force - init_force
+        force = get_FT(FTSensor) - init_force
         force_norm = np.linalg.norm(force)
         if force_norm > 0.2:
             print(f"Force detected: {force}")
             action = model.predict(force)
             print(f"Predicted action: {action}")
             action *= force_norm * 0.01
-            robot.step_duration(action=pose_to_SE3(action), duration=0.05)
+            robot.step_duration(action=pose_to_SE3(action), duration=0.1)

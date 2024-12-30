@@ -13,7 +13,7 @@ class MyRobot:
         self.sub = rospy.Subscriber(subscriber_topic, JointState, self.subscriber_callback)
 
         publisher_topic ='/scaled_pos_joint_traj_controller/command'
-        self.pub = rospy.Publisher(publisher_topic, JointTrajectory, queue_size=1)
+        self.pub = rospy.Publisher(publisher_topic, JointTrajectory, queue_size=200)
 
         # Wait for the subscriber to receive joint names
         rospy.sleep(0.5)
@@ -86,3 +86,4 @@ if __name__ == '__main__':
         current_joints = robot.get_joints()
         rospy.loginfo("Current Joint Values: %s", current_joints)
         rospy.sleep(1/20)
+
