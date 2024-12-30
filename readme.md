@@ -17,8 +17,6 @@ Once the package is cloned or updated, run
 pip install -e .
 ```
 
-
-
 ## Q&A
 
 ### Q1   
