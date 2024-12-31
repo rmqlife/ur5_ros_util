@@ -73,8 +73,14 @@ class HandTraj:
     
 
 if __name__ == "__main__":
+    import sys
+    if len(sys.argv) > 1:
+        csv_file = sys.argv[1]
+    else:
+        print("Please provide a CSV file as an argument.")
+        sys.exit(1)
 
-    hand_traj = HandTraj("../data/hand_pose_2024-12-31_16-05-16.csv")
+    hand_traj = HandTraj(csv_file)
     keypoints = hand_traj.get_keypoints()
    
     gripper_scale = hand_traj.get_simulated_gripper_size()
@@ -85,12 +91,10 @@ if __name__ == "__main__":
         SE3_poses.append(T)
     smooth_SE3 = smooth_trajectory(SE3_poses)
 
-    draw_movingframe(smooth_SE3,keypoints)
-
-
-    # hand_traj.draw_carton()
-
-    if False:
+    dry_run = False
+    if dry_run:
+        draw_movingframe(smooth_SE3, keypoints)
+    else:
         import rospy
         rospy.init_node('dino_bot')
         # object move
@@ -98,5 +102,5 @@ if __name__ == "__main__":
         robot = init_robot_with_ik()
         for action in smooth_SE3: # in range(len(smooth_SE3)):
             print(action)
-            robot.step_in_ee(action, wait=False)
-            rospy.sleep(0.2)
+            robot.step(action, wait=False)
+            rospy.sleep(0.05)
