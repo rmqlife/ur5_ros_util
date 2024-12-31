@@ -60,11 +60,11 @@ if __name__ == "__main__":
 
     robot = init_robot_with_ik()
     mybag = MyBag()
-    ft_sensor = MyFTSensor()    
+    # ft_sensor = MyFTSensor()    
     
     
     while not rospy.is_shutdown():
-        frame = image_saver.rgb_image
+        frame, depth = image_saver.get_frames()
         cv2.imshow('Camera', frame)
         key = cv2.waitKey(framedelay) & 0xFF 
         if key == ord('q'):
@@ -79,5 +79,5 @@ if __name__ == "__main__":
 
             mybag.record("action", SE3_to_pose(action))
             mybag.record("pose", SE3_to_pose(se3_pose))
-            mybag.record("force", ft_sensor.force)
-            mybag.record("torque", ft_sensor.torque)
+            # mybag.record("force", ft_sensor.force)
+            # mybag.record("torque", ft_sensor.torque)

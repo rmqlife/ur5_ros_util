@@ -14,8 +14,10 @@ mySensor/myGripper.py
 mySensor/myIO.py
 mySensor/myImageSaver.py
 mySensor/myOmni.py
+mySensor/myRS.py
 mySensor/myRTABMap.py
 tests/shake.py
+tests/test_teleop.py
 ur5_ros_utils.egg-info/PKG-INFO
 ur5_ros_utils.egg-info/SOURCES.txt
 ur5_ros_utils.egg-info/dependency_links.txt

@@ -23,7 +23,7 @@ if __name__=="__main__":
     print(f"Joints: {joints}")
         
     # Create a JointConfig instance
-    joint_configs = MyConfig("config/saved_joints.json")
+    joint_configs = MyConfig("../config/saved_joints.json")
     print(f"Existing configurations: {joint_configs.config_dict}")
     
     # Check if a configuration name is provided as a command-line argument

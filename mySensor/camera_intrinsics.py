@@ -3,7 +3,9 @@ from sensor_msgs.msg import CameraInfo
 import numpy as np
 import json
 
-def camera_info_callback(msg):
+config_path = "../config/camera_intrinsics.json"
+
+def camera_info_callback(msg, json_filename=config_path):
     # Extract camera matrix K from the message
     K_flat = msg.K
     # Reshape K to a 3x3 matrix
@@ -33,7 +35,7 @@ def camera_info_callback(msg):
     }
     
     # Save the intrinsic parameters to a JSON file
-    with open("intrinsic_parameters.json", "w") as json_file:
+    with open(json_filename, "w") as json_file:
         json.dump(intrinsic_params, json_file, indent=4)
     
     # Shutdown the node after receiving the camera matrix
@@ -45,6 +47,12 @@ def compute_intrinsic_parameters():
     rospy.Subscriber('/camera/aligned_depth_to_color/camera_info', CameraInfo, camera_info_callback)
     # Spin ROS
     rospy.spin()
+
+
+def load_intrinsics(json_filename=config_path):
+    with open(json_filename, "r") as file:
+        intrinsic_params = json.load(file)
+    return intrinsic_params
 
 if __name__ == '__main__':
     try:

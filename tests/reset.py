@@ -14,7 +14,7 @@ def main(config_name):
         my_robot = MyRobot()  # Initialize the robot object
 
         # Create a JointConfig instance
-        joint_configs = MyConfig('config/saved_joints.json')
+        joint_configs = MyConfig('../config/saved_joints.json')
 
         # Check if the reset pose is already saved, and load it if available
         if joint_configs.get(config_name):
@@ -22,7 +22,7 @@ def main(config_name):
             print("Loaded reset pose:", reset_joints)
             current_joints = my_robot.get_joints()
             print('current joints', current_joints)
-            my_robot.move_joints_smooth(reset_joints, coef=3, joint_thresh=10, wait=False)
+            my_robot.move_joints_smooth(reset_joints, coef=1.5, joint_thresh=10, wait=False)
         else:
             print(f"Configuration '{config_name}' not found in joint configurations.")
     

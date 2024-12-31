@@ -52,6 +52,8 @@ class MyImageSaver:
     def spin(self):
         rospy.spin()
 
+    def get_frames(self):
+        return self.rgb_image, self.depth_image
 
 if __name__ == '__main__':
     rospy.init_node('image_saver')
