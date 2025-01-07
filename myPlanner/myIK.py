@@ -116,12 +116,12 @@ if __name__ == "__main__":
     ax = visualize_poses(init_pose, label='init pose', autoscale=False, ax=None)
     target_pose = init_pose.copy()
     target_pose[2] -= 0.3
-    # points = circle_pose(init_pose, target_pose[:3], radius=0.1, num_points=50)
-    points = circle_points(init_pose[:3], radius=0.2, num_points=50)
+    poses = circle_pose(init_pose, target_pose[:3], radius=0.1, num_points=50)
+    # points = circle_points(init_pose[:3], radius=0.2, num_points=50)
     # points = rectangle_points(init_pose[:3], x=0.1, y=0.1)
-    visualize_poses(points, label="points to plan", color='y', autoscale=False, ax=ax)
+    visualize_poses(poses, label="points to plan", color='y', autoscale=False, ax=ax)
 
-    traj = myIK.plan_trajectory(points, joints)
+    traj = myIK.plan_trajectory(poses, joints)
     myIK.show_traj(traj,loop=True)
 
 

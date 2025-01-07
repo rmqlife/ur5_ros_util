@@ -20,7 +20,7 @@ def force2array(force_msg):
     return force_array
 
 class MyFTSensor:
-    def __init__(self, topic='/sunrise/force',  omni_flag=False):
+    def __init__(self, topic='/sunrise/force', omni_flag=False):
         self.force_subscriber = rospy.Subscriber(topic, WrenchStamped, self.subscriber_callback)
         self.omni_flag = omni_flag
 
@@ -37,7 +37,13 @@ class MyFTSensor:
             # Publish the modified force message
             self.force_publisher.publish(array2force(modified_force))
 
-
+    def get_FT(self, sensor, take_torque):
+        if take_torque:
+            return np.concatenate((self.force, self.torque))
+        else:
+            return self.force
+        
+    
 if __name__ == "__main__":
     rospy.init_node('my_ft_sensor_test_node')
     FTSensor = MyFTSensor(omni_flag=False)

@@ -23,7 +23,7 @@ def visualize_poses(poses, label="None", color='b', ax=None, autoscale=False):
     poses = np.array(poses)
     if len(poses.shape)<2:
         poses = np.array([poses])
-
+    print(f'loaded {poses.shape} poses to visualize')
     # plot positions
     p = poses[:, :3]
     ax.scatter(p[:, 0], p[:, 1], p[:, 2], c=color, marker='o', label=label)

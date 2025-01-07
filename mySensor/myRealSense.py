@@ -1,11 +1,17 @@
 import cv2
 import numpy as np
 import pyrealsense2 as rs
+import datetime
+
+def get_timestamp():
+    now = datetime.datetime.now()
+    timestamp = now.strftime("%Y-%m-%d_%H-%M-%S")
+    return timestamp
 
 def depth_to_colormap(depth_image):
     return cv2.applyColorMap(cv2.convertScaleAbs(depth_image, alpha=0.03), cv2.COLORMAP_JET)
 
-class MyRS:
+class MyRealSense:
     def __init__(self):
         # Initialize the RealSense pipeline and configure streams
         self.pipeline = rs.pipeline()
@@ -51,7 +57,9 @@ class MyRS:
         self.depth_colormap = self.depth_color_frame
         return  cv2.hconcat([self.color_image, self.depth_colormap])
         # return combined_image
-    
+
+
+
 # Initialize video writers for saving RGB and depth videos
 def initialize_video_writers(timestamp):
     video_rgb_save_path = f'data/{timestamp}_rgb.mp4'
@@ -67,10 +75,9 @@ def initialize_video_writers(timestamp):
 
 # Main function to run the pipeline
 if __name__ == "__main__":
-    from util import get_timestamp
     timestamp = get_timestamp()
     # Initialize the RealSense wrapper (MyRS class)
-    my_rs = MyRS()
+    my_rs = MyRealSense()
 
     # Initialize video writers
     out_rgb, out_depth = initialize_video_writers(timestamp)
@@ -84,8 +91,7 @@ if __name__ == "__main__":
             color_image, depth_image = my_rs.get_frames()
             if color_image is None or depth_image is None:
                 continue  # Skip if no frames are available
-            depth_colormap = my_rs.get_depth_colormap()
-            cv2.imshow("view", cv2.hconcat([color_image, depth_colormap]))
+            depth_colormap = depth_to_colormap(depth_image)
 
             # Check for key press events
             key = cv2.waitKey(1) & 0xFF
@@ -101,8 +107,11 @@ if __name__ == "__main__":
 
             # If video recording has started, save frames to video files
             if recording:
+                cv2.circle(color_image, (30, 30), 15, (0, 0, 255), -1)
                 out_rgb.write(color_image)
                 out_depth.write(depth_colormap)
+
+            cv2.imshow("view", cv2.hconcat([color_image, depth_colormap]))
 
 
     finally:

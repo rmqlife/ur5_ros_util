@@ -91,7 +91,7 @@ if __name__ == "__main__":
         SE3_poses.append(T)
     smooth_SE3 = smooth_trajectory(SE3_poses)
 
-    dry_run = False
+    dry_run = True
     if dry_run:
         draw_movingframe(smooth_SE3, keypoints)
     else:

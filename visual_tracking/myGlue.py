@@ -1,10 +1,13 @@
-import json
 import cv2
 import numpy as np
 import math
 import matplotlib.pyplot as plt
 import os
-from _utils.pose_util import *
+from myPlanner.pose_util import *
+import sys
+sys.path.insert(0,'/home/rmqlife/work/LightGlue')
+import lightglue
+from aruco_util import detect_aruco
 
 def replace_path(file_path, src, dst):
     directory, filename = os.path.split(file_path)  
@@ -69,14 +72,11 @@ class MyGlue:
         self.match_type=match_type
         if self.match_type == "LightGlue":
             import sys
-            sys.path.insert(0,'/home/rmqlife/work/LightGlue')
-            from lightglue import LightGlue, SuperPoint, DISK
-            from lightglue import viz2d
             import torch
             torch.set_grad_enabled(False)
             self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")  # 'mps', 'cpu'
-            self.extractor = SuperPoint(max_num_keypoints=2048).eval().to(self.device)  # load the extractor
-            self.matcher = LightGlue(features="superpoint", filter_threshold=0.9).eval().to(self.device)
+            self.extractor = lightglue.SuperPoint(max_num_keypoints=2048).eval().to(self.device)  # load the extractor
+            self.matcher = lightglue.LightGlue(features="superpoint", filter_threshold=0.9).eval().to(self.device)
 
 
     def match(self, image0, image1, verbose=True):
@@ -87,15 +87,14 @@ class MyGlue:
         return [], []
     
     def match_with_lightglue(self, image0, image1, verbose):
-        from lightglue.utils import numpy_image_to_torch, rbd
-        image0 = numpy_image_to_torch(image0)
-        image1 = numpy_image_to_torch(image1)
+        image0 = lightglue.utils.numpy_image_to_torch(image0)
+        image1 = lightglue.utils.numpy_image_to_torch(image1)
 
         feats0 = self.extractor.extract(image0.to(self.device))
         feats1 = self.extractor.extract(image1.to(self.device))
         matches01 = self.matcher({"image0": feats0, "image1": feats1})
         feats0, feats1, matches01 = [
-            rbd(x) for x in [feats0, feats1, matches01]
+            lightglue.utils.rbd(x) for x in [feats0, feats1, matches01]
         ]  # remove batch dimension
 
         kpts0, kpts1, matches = feats0["keypoints"], feats1["keypoints"], matches01["matches"]
@@ -107,7 +106,6 @@ class MyGlue:
         return m_kpts0, m_kpts1
 
     def match_with_aruco(self, image0, image1, id):
-        from utils.aruco_util import detect_aruco
         corners0, ids0 = detect_aruco(image0, draw_flag=False)
         corners1, ids1 = detect_aruco(image1, draw_flag=False)
         pts0, pts1 = [], []
@@ -169,31 +167,3 @@ def draw_matches_on_image(img, pts0, pts1):
         cv2.line(img_with_lines, pt0, pt1, (0, 255, 0), 2)  # Green line with thickness 2
 
     return img_with_lines
-
-if __name__=="__main__":
-    # os.environ.pop("QT_QPA_PLATFORM_PLUGIN_PATH")
-    # glue = MyGlue("LightGlue")
-    glue = MyGlue("Aruco")
-    id1=9
-    id2=66
-
-    image_path1 = f"/0612-facedown/rgb_{id1}.png"
-    image_path2 = f"data/0612-facedown/rgb_{id2}.png"
-    rgb1 = cv2.imread(image_path1)
-    rgb2 = cv2.imread(image_path2)
-
-    pts0, pts1 = glue.match(rgb1, rgb2,verbose=True)
-
-
-    depth_path1 = replace_rgb_to_depth(image_path1)
-    depth_path2 = replace_rgb_to_depth(image_path2)
-    depth1 = cv2.imread(depth_path1, cv2.IMREAD_UNCHANGED)
-    depth2 = cv2.imread(depth_path2, cv2.IMREAD_UNCHANGED)
-
-    intrinsics = load_intrinsics("slam_data/intrinsics_d435.json")
-    R, t = glue.match_3d(pts0, pts1, depth1, depth2, intrinsics, show=True)
-    print(R, t)
-
-    img = draw_matches_on_image(rgb1, pts0, pts1)
-    cv2.imshow('ts',img)
-    cv2.waitKey(0)
