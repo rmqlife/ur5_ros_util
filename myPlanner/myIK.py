@@ -55,6 +55,9 @@ class MyIK:
     def __init__(self):
         self.robot = rtb.models.UR5()
     
+    def set_base(self, base_pose):
+        self.robot.base = base_pose
+
     def fk_se3(self, q):
         return self.robot.fkine(q)
 
@@ -111,7 +114,7 @@ if __name__ == "__main__":
     joints = [-1.57, -1.57, 1.57, -1.57, -1.57, 0]
 
     myIK = MyIK()
-
+    myIK.set_base(SE3(0,0,0.3))
     init_pose = myIK.fk(joints)
     ax = visualize_poses(init_pose, label='init pose', autoscale=False, ax=None)
     target_pose = init_pose.copy()

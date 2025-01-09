@@ -5,6 +5,8 @@ from read_hand import hand_pose,smooth_trajectory,find_transformation_vectors,_4
 from spatialmath import SE3
 from myPlanner.pose_util import pose_to_SE3, SE3_to_pose
 from matplotlib import pyplot as plt
+
+
 def tracking_data_to_actions(csv_path, visualize=False):
     pd_data = hand_pose(csv_path)
     data = pd_data.get_hand_pose(2, 50)
@@ -31,8 +33,8 @@ def ee_actions_to_robot_traj(actions, pose):
     pose_se3 = pose_to_SE3(pose)
     poses = []
     for action in actions:
-        pose_se3_new =  pose_se3 * action # right multiply
-        poses.append(SE3_to_pose(action))
+        pose_se3_new =  action # right multiply
+        poses.append(SE3_to_pose(pose_se3_new))
     return poses
 
 

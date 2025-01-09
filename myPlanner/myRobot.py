@@ -29,6 +29,9 @@ class MyRobot:
         self.velocity = np.array(data.velocity)
 
 
+    def is_moving(self):
+        return np.any(np.abs(self.velocity) > 1e-4)
+
     def get_joints(self):
         return self.joint_positions
 

@@ -5,7 +5,6 @@ from myPlanner import init_robot_with_ik
 from myPlanner import MyBag
 from myPlanner.pose_util import *
 from mySensor import MyImageSaver
-from mySensor import MyFTSesor
 
 import rospy
 import cv2

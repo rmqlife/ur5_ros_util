@@ -98,7 +98,7 @@ class FTModel():
         
 
 def build_ft_model(data_path):
-    mybag = myBag.MyBag('data/force_xy_ring_z_tissue.json')
+    mybag = myBag.MyBag(data_path)
     forces, actions = clean_bag(mybag, force_threshold=0.3)
 
     return FTModel(forces, actions)
@@ -111,7 +111,7 @@ def get_FT(sensor):
 
 if __name__ == "__main__":
     # force_xy_ring_z_tissue
-    model = build_ft_model(data_path='data/force_xy_ring_z_tissue.json')
+    model = build_ft_model(data_path='/home/rmqlife/work/ur5_ros_utils/data/force_xy_ring_z_tissue.json')
 
     rospy.init_node('compliant_control123', anonymous=False)
     robot = init_robot_with_ik()

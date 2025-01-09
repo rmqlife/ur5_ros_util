@@ -1,15 +1,21 @@
-from aruco_util import *
-from mySensor import MyImageSaver
 import rospy
 import cv2
-# from replay_aruco_poses import *
-from std_msgs.msg import Float32
-from ik_step import *
+import numpy as np
 import os
+from mySensor import MyImageSaver, load_intrinsics
+from aruco_util import estimate_markers_poses, detect_aruco
 
-def get_aruco_poses(corners, ids, intrinsics):
+from ik_step import lookup_action, key_map
+from myPlanner import init_robot_with_ik
+
+from myGlue import project_to_3d
+from myPlanner import MyBag, SE3_to_pose
+camera_intrinsics = load_intrinsics("../config/camera_intrinsics.json")
+marker_size = 0.025
+
+def get_aruco_poses(corners, ids, camera_intrinsics):
     # make sure the aruco's orientation in the camera view! 
-    poses = estimate_markers_poses(corners, marker_size=0.10, intrinsics=intrinsics)  # Marker size in meters
+    poses = estimate_markers_poses(corners, marker_size=marker_size, intrinsics=camera_intrinsics)  
     poses_dict = {}
     # detected
     if ids is not None:
@@ -18,189 +24,76 @@ def get_aruco_poses(corners, ids, intrinsics):
     return poses_dict
 
 
-def get_cam_pose(frame, intrinsics):
-    print("intrinsics", intrinsics)
+def average_distance(pos_list):
+    distances = []
+    for i in range(len(pos_list)):
+        a1 = pos_list[i]
+        a2 = pos_list[(i + 1) % len(pos_list)]
+        a1 = np.array(a1)
+        a2 = np.array(a2)
+        distance = np.linalg.norm(a1 - a2)
+        distances.append(distance)
+    mean_distance = np.mean(distances)
+    return mean_distance
 
-    corners, ids = detect_aruco(frame, draw_flag=True)# 
-    print('get cam ids',ids)
-    poses_dict = get_aruco_poses(corners=corners, ids=ids, intrinsics=intrinsics)
-    id = 0
-    current_cam = None
-    if id in poses_dict:
-        current_pose = poses_dict[id]
-            # compute the R, t
-        current_cam = inverse_pose(current_pose)
-            # compute 
-        # print('cam', np.round(current_cam[:3], 3))
-    return current_cam
+def measure_marker_size(corners, depth, camera_intrinsics):
+    marker_sizes = []
+    for corner in corners:
+        points = project_to_3d(corner, depth, camera_intrinsics, show=False)
+        mean_distance = average_distance(points)
+        marker_sizes.append(mean_distance)
+        
+    mean_size = np.mean(marker_sizes)
+    return mean_size
 
-def get_marker_pose(frame, id=0, draw=True, intrinsics = intrinsics_d435):
-    corners, ids = detect_aruco(frame, draw_flag=draw)# 
-    if ids is not None and len(ids)>0:
-        poses_dict = get_aruco_poses(corners=corners, ids=ids, intrinsics=intrinsics)
-        for i, c in zip(ids, corners):
-            if i == id:
-                # exchange x, y axis
-                # transform = SE3([[0,1,0,0],[1,0,0,0],[0,0,1,0],[0,0,0,1]])
-                pose = pose_to_SE3(poses_dict[id])
-                # pose = transform * pose
-                
-                return pose, c
-    
-    return None, None
-
-
-
-def record_in_hand():
+if __name__ == "__main__":
     # for eye in hand
-    rospy.init_node('follow_aruco')
-    image_saver = MyImageSaver(namespace="camera1")
+    rospy.init_node('record_aruco')
+    image_saver = MyImageSaver()
+    mybag = MyBag(filename=os.path.join(image_saver.folder_path, 'record_aruco.json'))
+
     rospy.sleep(1)
     framedelay = 1000//20
-    # intrinsics = load_intrinsics("slam_data/intrinsics_d435.json")
-    robot = init_robot("robot1")
-    robot_without_basetransformation = MyIK()
-    goal_pose = None
-    goal_corner = None
+    robot = init_robot_with_ik()
+
     robot_poses = []
     marker_poses = []# in frame of aruco marker
     home = image_saver.folder_path
 
+    myid = 0
     while not rospy.is_shutdown():
         frame = image_saver.rgb_image
-        
-        marker_pose, corner = get_marker_pose(frame, 0)
-        
-        if goal_corner is not None and corner is not None:
-            for (x1, y1), (x2, y2) in zip(corner, goal_corner):
-                cv2.line(frame, (int(x1), int(y1)), (int(x2), int(y2)), (255,255,0), 2)
+        depth = image_saver.depth_image
+        corners, ids = detect_aruco(frame, draw_flag=True)
+
+        poses_dict = get_aruco_poses(corners=corners, ids=ids, camera_intrinsics=camera_intrinsics)
+        if myid in poses_dict:
+            marker_pose = poses_dict[myid]
+        else:
+            marker_pose = None
 
         cv2.imshow('Camera', frame)
         # Exit on 'q' key press
         key = cv2.waitKey(framedelay) & 0xFF 
         if key == ord('q'):
-
             break
-        if key == ord('s'):
-            if marker_pose != None:
-                joints = robot.get_joints()
-                robot_pose = robot_without_basetransformation.fk(joints)
-                robot_poses.append(robot_pose)
-                marker_poses.append(SE3_to_pose(marker_pose))
-                image_saver.record()
-            else:
-                print("cannot detect id 0")
-
 
         elif key in key_map:
             code  = key_map[key]
             print(f"action {code}")
-            action = lookup_action(code)
+            action = lookup_action(code,  t_move=0.02, r_move=2)
             pose = robot.step(action=action, wait=False)
-            print('robot pose', np.round(pose[:3], 3))
 
-        if key == ord('m') and goal_pose is not None and marker_pose is not None:
-            move = goal_pose * marker_pose.inv()
-            move = SE3(goal_pose.t) * SE3(marker_pose.t).inv()
-            print('movement')
-            move.printline()
-            robot.step(action=move, wait=False)
+            # measure the marker size
+            measured_marker_size = measure_marker_size(corners, depth, camera_intrinsics)
+            print(f"Measured marker size: {measured_marker_size}")
 
-        if key == ord('g'):
-            # setup goal
+        elif key == ord(' '):
             if marker_pose is not None:
-                goal_pose = marker_pose.copy()
-                goal_corner = corner.copy()
-                print('set goal as')
-                goal_pose.printline()
-            else:
-                print('no valid marker pose')
-    np.save(os.path.join(home,  'robot_poses'), robot_poses)
-    np.save(os.path.join(home,  'marker_poses'), marker_poses)
-    cv2.destroyAllWindows()
-
-def record_to_hand():
-    rospy.init_node('follow_aruco')
-    image_saver = MyImageSaver(namespace="camera1")
-    image_saver2 = MyImageSaver(namespace="camera3")
-    rospy.sleep(1)
-    framedelay = 1000//20
-    # intrinsics = load_intrinsics("slam_data/intrinsics_d435.json")
-    robot = init_robot("robot1")
-    robot_without_basetransformation = MyIK()
-    goal_pose = None
-    goal_corner = None
-    robot_poses = []
-    marker_poses = []# in frame of aruco marker
-    marker_poses2 = []
-    home = image_saver.folder_path
-
-    while not rospy.is_shutdown():
-        frame = image_saver.rgb_image   
-        frame2 = image_saver2.rgb_image
-
-
-        
-        marker_pose, corner = get_marker_pose(frame, 0, intrinsics=intrinsics_d435)
-        marker_pose2, corner2 = get_marker_pose(frame2, 0, intrinsics=intrinsics_d435)
-        
-        if goal_corner is not None and corner is not None:
-            for (x1, y1), (x2, y2) in zip(corner, goal_corner):
-                cv2.line(frame, (int(x1), int(y1)), (int(x2), int(y2)), (255,255,0), 2)
-
-        if goal_corner is not None and corner2 is not None:
-            for (x1, y1), (x2, y2) in zip(corner2, goal_corner):
-                cv2.line(frame2, (int(x1), int(y1)), (int(x2), int(y2)), (255,255,0), 2)
-
-        cv2.imshow('Camera', frame)
-        cv2.imshow('Camera2', frame2)
-
-        # Exit on 'q' key press
-        key = cv2.waitKey(framedelay) & 0xFF 
-        if key == ord('q'):
-
-            break
-        if key == ord('s'):
-            if marker_pose != None:
-                joints = robot.get_joints()
-                robot_pose = robot_without_basetransformation.fk(joints)
-                robot_poses.append(robot_pose)
-                marker_poses.append(SE3_to_pose(marker_pose))
                 image_saver.record()
-            else:
-                print("cannot detect id 0")
-            if marker_pose2 != None and len(marker_poses2)==0:
-                marker_poses2.append(SE3_to_pose(marker_pose2))
-                image_saver2.record()
+                se3_pose = robot.get_pose_se3()
+                mybag.record("robot_pose", SE3_to_pose(se3_pose))
+                mybag.record("marker_pose", marker_pose)
+                print("recorded step")
 
-
-        elif key in key_map:
-            code  = key_map[key]
-            print(f"action {code}")
-            action = lookup_action(code)
-            pose = robot.step(action=action, wait=False)
-            print('robot pose', np.round(pose[:3], 3))
-
-        if key == ord('m') and goal_pose is not None and marker_pose is not None:
-            move = goal_pose * marker_pose.inv()
-            move = SE3(goal_pose.t) * SE3(marker_pose.t).inv()
-            print('movement')
-            move.printline()
-            robot.step(action=move, wait=False)
-
-        if key == ord('g'):
-            # setup goal
-            if marker_pose is not None:
-                goal_pose = marker_pose.copy()
-                goal_corner = corner.copy()
-                print('set goal as')
-                goal_pose.printline()
-            else:
-                print('no valid marker pose')
-    np.save(os.path.join(home,  'robot_poses'), robot_poses)
-    np.save(os.path.join(home,  'marker_poses'), marker_poses)
-    np.save(os.path.join(home,  'marker_poses2'), marker_poses2)
     cv2.destroyAllWindows()
-    
-if __name__ == "__main__":
-    record_in_hand()
