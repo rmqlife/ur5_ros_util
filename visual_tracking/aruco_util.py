@@ -47,6 +47,10 @@ def generate_aruco_marker(marker_id, marker_size, output_file):
     cv2.imwrite(output_file, marker_image)
 
 
+def estimate_marker_pose(corner, marker_size, intrinsics):
+    return estimate_markers_poses([corner], marker_size, intrinsics)[0]
+
+
 def estimate_markers_poses(corners, marker_size, intrinsics):
     '''
     This will estimate the rvec and tvec for each of the marker corners detected by:

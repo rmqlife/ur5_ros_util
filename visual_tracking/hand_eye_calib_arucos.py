@@ -81,7 +81,6 @@ def compute_model(marker_poses, robot_poses, method='eye_in_hand'):
     if method == 'eye_in_hand':
         myHandEye = MyHandEye()
         myHandEye.eye_in_hand(poses_m2c=marker_poses, poses_g2b=robot_poses)
-        myHandEye.save('./hand_eye.npz')
         return myHandEye
     
     elif method == 'eye_to_hand':
@@ -139,6 +138,8 @@ if __name__ == "__main__":
     marker_poses, robot_poses = load_mybag_poses()
 
     myHandEye= compute_model(marker_poses=marker_poses, robot_poses=robot_poses, method='eye_in_hand')
+    myHandEye.save('./hand_eye.npz')
+    
     T_t2b = myHandEye.compute_t2b()
     # print(SE3(myHandEye.T_c2g))
     for i in range(len(T_t2b)):

@@ -40,7 +40,6 @@ class MyRobotWithIK(MyRobot):
         pose_se3 = pose_to_SE3(self.get_pose())
         pose_se3_new =  pose_se3 * action # right multiply
         
-        print("new pose SE3:" ,pose_se3_new)
         return self.goto_pose(pose_se3_new, wait)
 
 
