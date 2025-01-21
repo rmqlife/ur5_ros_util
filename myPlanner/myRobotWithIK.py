@@ -31,7 +31,7 @@ class MyRobotWithIK(MyRobot):
         joints_star = self.myIK.ik_se3(pose, q=joints)
         # compute the difference between joints and joints_star
         joints_star = angle_transfer(joints, joints_star)
-        return super().move_joints_smooth(joints_star, coef=coef, wait=wait)
+        return super().move_joints_smooth(joints_star, coef=coef, joint_thresh = 2, wait=wait)
 
     def step_in_ee(self, action, wait):
         """
@@ -39,7 +39,6 @@ class MyRobotWithIK(MyRobot):
         """
         pose_se3 = pose_to_SE3(self.get_pose())
         pose_se3_new =  pose_se3 * action # right multiply
-        
         return self.goto_pose(pose_se3_new, wait)
 
 

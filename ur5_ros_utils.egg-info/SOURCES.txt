@@ -1,4 +1,14 @@
 setup.py
+myApp/__init__.py
+myApp/bound.py
+myApp/ik_step.py
+myApp/list_and_kill_rosnode.py
+myApp/move_to_poses.py
+myApp/record_joints.py
+myApp/record_traj.py
+myApp/reset.py
+myApp/shake.py
+myApp/test_teleop.py
 myPlanner/__init__.py
 myPlanner/myBag.py
 myPlanner/myBound.py
@@ -7,6 +17,7 @@ myPlanner/myIK.py
 myPlanner/myRobot.py
 myPlanner/myRobotWithIK.py
 myPlanner/pose_util.py
+myPlanner/test_myIK.py
 mySensor/__init__.py
 mySensor/camera_intrinsics.py
 mySensor/myFTSensor.py
@@ -14,10 +25,8 @@ mySensor/myGripper.py
 mySensor/myIO.py
 mySensor/myImageSaver.py
 mySensor/myOmni.py
-mySensor/myRS.py
 mySensor/myRTABMap.py
-tests/shake.py
-tests/test_teleop.py
+mySensor/myRealSense.py
 ur5_ros_utils.egg-info/PKG-INFO
 ur5_ros_utils.egg-info/SOURCES.txt
 ur5_ros_utils.egg-info/dependency_links.txt

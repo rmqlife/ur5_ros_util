@@ -1,4 +1,6 @@
-from ik_step import *
+from myApp.ik_step import *
+from mySensor import MyFTSensor
+from mySensor import MyBag
 
 if __name__ == "__main__":
     rospy.init_node('collect_ft_data', anonymous=True)
@@ -7,7 +9,6 @@ if __name__ == "__main__":
 
     robot = init_robot_with_ik()
     mybag = MyBag()
-    from mySensor.myFTSensor import MyFTSensor
     ft_sensor = MyFTSensor()    
     
     

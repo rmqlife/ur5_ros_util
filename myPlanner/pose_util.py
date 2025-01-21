@@ -86,8 +86,46 @@ def Rt_to_pose(R, t):
     pose = list(t) + list(R_to_quat(R))
     return np.array(pose)
 
+
+def Rt_to_SE3(R, t):
+    pose = Rt_to_pose(R, t)
+    return pose_to_SE3(pose)
+
 def inverse_Rt(R, t):
     return R.T, -R.T @ t
+
+def pose_to_T(pose):
+    R, t = pose_to_Rt(pose)
+    return Rt_to_T(R, t)
+
+def Rt_to_T(R, t):
+    T = np.eye(4)
+    T[:3,:3] = R
+    T[:3,3] = t.flatten()
+    return T
+
+def T_to_pose(T):
+    t = T[:3, 3]
+    R = T[:3, :3]
+    q = R_to_quat(R)
+    return np.concatenate((t, q))
+
+def Ts_to_poses(Ts):
+    poses = []
+    for T in Ts:
+        pose = T_to_pose(T).tolist()
+        poses.append(pose)
+    return poses
+
+def poses_to_Ts(poses):
+    Ts = []
+    for pose in poses:
+        T = pose_to_T(pose)
+        Ts.append(T)
+    Ts = np.array(Ts)
+    return Ts
+
+
 
 def inverse_pose(pose):
     R, t = pose_to_Rt(pose)

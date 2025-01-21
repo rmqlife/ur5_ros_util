@@ -1,8 +1,6 @@
 import numpy as np
-# from myPlanner import *
 from spatialmath import SE3
 from myPlanner import init_robot_with_ik
-from myPlanner import MyBag
 from myPlanner.pose_util import *
 from mySensor import MyImageSaver
 
@@ -58,8 +56,6 @@ if __name__ == "__main__":
     framedelay = 1000//20
 
     robot = init_robot_with_ik()
-    mybag = MyBag()
-    # ft_sensor = MyFTSensor()    
     
     
     while not rospy.is_shutdown():
@@ -75,8 +71,3 @@ if __name__ == "__main__":
             se3_pose = robot.step(action=action, wait=False)
             se3_pose.printline()
             image_saver.record()
-
-            mybag.record("action", SE3_to_pose(action))
-            mybag.record("pose", SE3_to_pose(se3_pose))
-            # mybag.record("force", ft_sensor.force)
-            # mybag.record("torque", ft_sensor.torque)

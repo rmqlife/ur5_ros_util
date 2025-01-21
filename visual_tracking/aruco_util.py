@@ -2,6 +2,8 @@ import cv2
 import cv2.aruco as aruco
 import numpy as np
 from myPlanner import Rt_to_pose
+import matplotlib.pyplot as plt
+import math
 
 ARUCO_DICT_NAME = aruco.DICT_4X4_100
 my_aruco_dict = cv2.aruco.getPredefinedDictionary(ARUCO_DICT_NAME)
@@ -70,7 +72,7 @@ def estimate_markers_poses(corners, marker_size, intrinsics):
                     [0, intrinsics["fy"], intrinsics["cy"]],
                     [0, 0, 1]], dtype=np.float32)
     distortion = np.zeros((5, 1))  # Assuming no distortion
-
+    # distortion  = np.array([[ 0.00377581 , 0.00568285 ,-0.00188039, -0.00102468 , 0.02337337]])
     poses = []
     for c in corners:
         ret, rvec, tvec = cv2.solvePnP(marker_points, c, mtx, distortion, False, cv2.SOLVEPNP_EPNP)
@@ -97,6 +99,79 @@ def generate_markers(start_id=0, end_id=20, size=100, folder="arucos-new"):
             print(f"Generated marker {marker_id}")
     except Exception as e:
         print(f"Error generating markers: {str(e)}")
+
+
+
+def project_to_3d(points, depth, intrinsics, show=False):
+    if show:
+        plt.imshow(depth)
+    
+    points_3d = list()
+    for x,y in points:
+        x = math.floor(x) 
+        y = math.floor(y)
+        d = depth[y][x]        
+        # Plot points (x, y) on the image
+        if show:
+            if d>0:
+                plt.scatter(x, y, color='blue', s=10)  # Adjust the size (s) as needed
+            else:
+                plt.scatter(x, y, color='red', s=10)
+        # z = d / depth_scale
+        # x = (u - cx) * z / fx
+        # y = (v - cy) * z / fy
+        # 3d point in meter
+        z = d / 1000
+        x = (x - intrinsics['cx']) * z / intrinsics['fx'] 
+        y = (y - intrinsics['cy']) * z / intrinsics['fy'] 
+        
+        if show:
+            print(f'x:{x} \t y:{y} \t z:{z}')
+        points_3d.append((x,y,z))
+        
+    if show:
+        plt.axis('off')  # Turn off axis labels
+        plt.show()
+    
+    return points_3d
+    
+
+def get_aruco_poses(frame, depth, camera_intrinsics,  default_marker_size, draw_flag=True, verbose=False):
+    poses_dict = {}
+    # make sure the aruco's orientation in the camera view! 
+    corners, ids = detect_aruco(frame, draw_flag=draw_flag)
+    marker_size = default_marker_size
+    for corner, id in zip(corners, ids):
+        if depth is not None:
+            points = project_to_3d(corner, depth, camera_intrinsics, show=False)
+            if all(validate_point(point) for point in points):
+                marker_size = average_distance(points)
+        pose = estimate_marker_pose(corner, marker_size=marker_size, intrinsics=camera_intrinsics) 
+        poses_dict[id] = pose
+        if verbose:
+            print(f"id: {id}, pose: {pose}, size: {marker_size}")
+            print()
+    return poses_dict
+
+
+def validate_point(point):
+    # if z almost is the zero, then the point is not valid
+    if abs(point[2]) < 1e-4:
+        return False
+    return True
+
+def average_distance(points):
+    distances = []
+    # compute 0 to 1, 1 to 2, 2 to 3, 3 to 0
+    for i in range(len(points)):
+        a1 = points[i]
+        a2 = points[(i + 1) % len(points)]
+        a1 = np.array(a1)
+        a2 = np.array(a2)
+        distance = np.linalg.norm(a1 - a2)
+        distances.append(distance)
+    mean_distance = np.mean(distances)
+    return mean_distance
 
 
 if __name__ == "__main__":

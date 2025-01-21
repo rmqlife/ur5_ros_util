@@ -1,5 +1,5 @@
 from myGlue import MyGlue
-from ik_step import *
+from myApp.ik_step import *
 from mySensor import MyImageSaver,  load_intrinsics
 from myPlanner import init_robot_with_ik
 import os

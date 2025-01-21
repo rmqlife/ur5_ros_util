@@ -13,7 +13,7 @@ def load_rgb_depth(img_id):
     depth_path = f"{home}/depth_{img_id}.png"  # Assuming depth images have a different naming convention
     rgb = cv2.imread(image_path)
     depth = cv2.imread(depth_path, cv2.IMREAD_UNCHANGED)
-    return rgb, depth    
+    return rgb, depth
 
 if __name__ == "__main__":
     glue = MyGlue(match_type="Aruco") # Aruco LightGlue

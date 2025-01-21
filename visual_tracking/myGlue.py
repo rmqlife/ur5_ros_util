@@ -7,7 +7,7 @@ from myPlanner.pose_util import *
 import sys
 sys.path.insert(0,'/home/rmqlife/work/LightGlue')
 import lightglue
-from aruco_util import detect_aruco
+from aruco_util import detect_aruco, project_to_3d
 
 def replace_path(file_path, src, dst):
     directory, filename = os.path.split(file_path)  
@@ -17,39 +17,6 @@ def replace_path(file_path, src, dst):
 def replace_rgb_to_depth(file_path):
     return replace_path(file_path, 'rgb', 'depth')
 
-def project_to_3d(points, depth, intrinsics, show=False):
-    if show:
-        plt.imshow(depth)
-    
-    points_3d = list()
-    for x,y in points:
-        x = math.floor(x) 
-        y = math.floor(y)
-        d = depth[y][x]        
-        # Plot points (x, y) on the image
-        if show:
-            if d>0:
-                plt.scatter(x, y, color='blue', s=10)  # Adjust the size (s) as needed
-            else:
-                plt.scatter(x, y, color='red', s=10)
-        # z = d / depth_scale
-        # x = (u - cx) * z / fx
-        # y = (v - cy) * z / fy
-        # 3d point in meter
-        z = d / 1000
-        x = (x - intrinsics['cx']) * z / intrinsics['fx'] 
-        y = (y - intrinsics['cy']) * z / intrinsics['fy'] 
-        
-        if show:
-            print(f'x:{x} \t y:{y} \t z:{z}')
-        points_3d.append((x,y,z))
-        
-    if show:
-        plt.axis('off')  # Turn off axis labels
-        plt.show()
-    
-    return points_3d
-    
 
 def filter_out_zeros_points(pt3d1, pt3d2, threshold=1e-4):
     new_pt3d1 = list()
