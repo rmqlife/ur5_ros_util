@@ -2,11 +2,11 @@ from .myBag import *
 from .pose_util import pose_to_SE3
 from .myRobotWithIK import init_robot
 
-def build_bounding_box(filename = "data/boundingbox_traj.json"):
+def build_bounding_box(filename = "data/boundingbox_traj.json", save_filename = "../config/boundingbox.json"):
     mybag = MyBag(filename)
-    print("loaded traj len:", len(mybag.data['robot pose']))
+    print("loaded traj len:", len(mybag.data['robot_pose']))
     # compute the bounding box of the trajectory
-    traj = np.array(mybag.data['robot pose'])
+    traj = np.array(mybag.data['robot_pose'])
     print("traj shape:", traj.shape)
     upper = np.max(traj, axis=0)
     lower = np.min(traj, axis=0)
@@ -14,12 +14,11 @@ def build_bounding_box(filename = "data/boundingbox_traj.json"):
     print("traj max:", lower)
 
     # save it to the a bounding box key
-    mybag.data = dict()
-    mybag.data['upper'] = upper
-    mybag.data['lower'] = lower
+    newbag = MyBag(save_filename)
+    newbag.data = dict()
+    newbag.data['upper'] = upper
+    newbag.data['lower'] = lower
     
-    mybag.export_data("config/boundingbox.json")
-
 
 
 class MyBound:
@@ -52,32 +51,4 @@ class MyBound:
     
 
 if __name__ == '__main__':
-    rospy.init_node('bounding_box_hold', anonymous=False)
-    robot = init_robot()
-    rospy.sleep(1)  # Adjust the time as needed
-
-
-    mybag = MyBag("config/boundingbox.json")
-    upper = mybag.data['upper']
-    lower = mybag.data['lower']
-    print("upper bound", upper)
-    print("lower bound", lower)
-
-
-    bound = MyBound(lower=lower, upper=upper, box_dim=3)
-
-    while not rospy.is_shutdown():
-        rospy.sleep(0.005)
-
-        # compare the robot pose to the upper and lower bound 
-        pose = robot.get_pose()
-        
-        # Check if the pose is within the specified bounding box
-        if not bound.in_the_box(pose):
-            # move to the bounds
-            corrected_pose = bound.correct_pose_within_bounds(pose, tolerance=0.01)
-            print('corrected pose', corrected_pose)
-            print('current pose', robot.get_pose())
-            robot.hold(0.5)
-            robot.goto_pose(pose=pose_to_SE3(corrected_pose), wait=False, coef=1)
-            rospy.sleep(0.1)
+    build_bounding_box(filename="../data/recorded_poses.json", save_filename="../config/boundingbox_gripper.json")

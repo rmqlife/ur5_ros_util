@@ -13,7 +13,7 @@ class MyGripper:
     def gripper_state_callback(self, msg):
         # This callback function is called every time a new message is received on the gripper state topic
         # rospy.loginfo(f"Gripper position: {msg.position}")
-        self.current_position = msg.position
+        self.current_position = msg.position  
 
     def set_gripper(self, position, force, speed=50.0, wait=False):
         # Create a GripperCtrl message

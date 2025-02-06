@@ -5,7 +5,7 @@ import numpy as np
 
 if __name__ == "__main__":
     rospy.init_node('test_stop', anonymous=False)
-    robot = init_robot_with_ik
+    robot = init_robot_with_ik()
     FTSensor = MyFTSensor(omni_flag=False)
     rospy.sleep(1)  # Adjust the time as needed
 

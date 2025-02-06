@@ -51,6 +51,7 @@ def se3_to_euler6d(se3_object):
     euler_6d = list(translation) + list(rotation)
     return euler_6d
 
+
 if __name__ == "__main__":
     rospy.init_node('test_handeye', anonymous=True)
     image_saver = MyImageSaver(cameraNS='camera')
@@ -61,7 +62,7 @@ if __name__ == "__main__":
 
     mybag = MyBag(filename='follow_aruco.json')
 
-    goal_pose = SE3(0,0,0.5) * SE3.Rx(-180, unit="deg")
+    goal_pose = SE3(0,0,0.20) * SE3.Rx(-180, unit="deg")
     print('Goal Pose')
     goal_pose.printline()
     target_id = 4
@@ -92,8 +93,6 @@ if __name__ == "__main__":
         if target_id in poses_dict:
             pose = poses_dict[target_id] 
             pose_list.append(pose)
-            # remove the pose's rx and ry
-            # pose = SE3(pose.t, pose.ry, pose.rz)
 
         if len(pose_list) >= pose_list_size:
             pose_mean = np.mean(pose_list, axis=0)

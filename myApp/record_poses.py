@@ -4,10 +4,10 @@ if __name__ == '__main__':
     rospy.init_node('test_mybag', anonymous=True)
     
     # Initialize the data saver (array_saver)
-    mybag = MyBag()
+    mybag = MyBag("../data/recorded_poses.json")
     
     robot = init_robot_with_ik()
 
     while not rospy.is_shutdown():
-        mybag.record('robot pose', robot.get_pose())
+        mybag.record('robot_pose', robot.get_pose())
         rospy.sleep(1/10)

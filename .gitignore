@@ -2,3 +2,5 @@ data/
 __pycache__/
 ros_utils/
 visual_tracking/arucos-*/
+visual_tracking/data_states/
+visual_tracking/data/

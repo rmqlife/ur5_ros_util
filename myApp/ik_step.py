@@ -59,7 +59,7 @@ if __name__ == "__main__":
     
     
     while not rospy.is_shutdown():
-        frame, depth = image_saver.get_frames()
+        frame, depth_frame = image_saver.get_frames()
         cv2.imshow('Camera', frame)
         key = cv2.waitKey(framedelay) & 0xFF 
         if key == ord('q'):
