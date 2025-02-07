@@ -8,6 +8,29 @@ from myStates import MyStates, load_state, save_state
 
 framedelay = 1000//20
 
+def filter_action(action, t_thresh=0.03, rad_thresh=0.05):
+    from follow_aruco import se3_to_euler6d, euler_to_se3
+    
+    action = se3_to_euler6d(action)
+    t = np.array(action[:3])
+    rad = np.array(action[3:])
+    print("t", t)
+    print("rad", rad)
+    t_norm = np.linalg.norm(t)
+    rad_norm = np.linalg.norm(rad)
+    if t_norm > t_thresh:
+        t = t_thresh / t_norm * t
+        rad = np.zeros(3) #[0,0,0]
+        print("new t", t)
+    elif rad_norm > rad_thresh:
+        t = np.zeros(3)
+        rad = rad_thresh / rad_norm * rad
+        print('now rad', rad)
+    # euler = 1*np.array(euler)
+    action = t.tolist() + rad.tolist()
+    action = euler_to_se3(action)
+    return action
+
 
 if __name__=="__main__":
     save_data_dir = "data_states/recorded_0206/"
@@ -73,6 +96,9 @@ if __name__=="__main__":
             camera_move = Rt_to_SE3(R, t)
             camera_move.printline()
             gripper_move = hand_eye.gripper_move(camera_move)
+
+            # filter action to move step by step
+            gripper_move = filter_action(gripper_move)
             robot.step_in_ee(action=gripper_move, wait=False)
 
         elif key == ord('t'):

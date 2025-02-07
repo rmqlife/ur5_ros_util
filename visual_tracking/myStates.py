@@ -17,7 +17,6 @@ def save_state(state, filename):
     # save dict state
     np.savez(filename, **state)
 
-
 class MyStates:
     def __init__(self, data_dir):
         self.data_dir = data_dir
