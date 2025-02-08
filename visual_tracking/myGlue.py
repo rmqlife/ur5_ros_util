@@ -21,7 +21,6 @@ def replace_rgb_to_depth(file_path):
 def filter_out_zeros_points(pt3d1, pt3d2, threshold=1e-4):
     new_pt3d1 = list()
     new_pt3d2 = list()
-    print('filter')
     for p1, p2 in zip(pt3d1, pt3d2):
         if p1[2]>threshold and p2[2]>threshold:
             new_pt3d1.append(p1)

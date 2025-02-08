@@ -19,7 +19,7 @@ def clear_se3_axis(se3_pose, pattern="111000"):
     for i, p in enumerate(pattern):
         if p == '0':
             euler_pose[i] = 0
-    return euler_to_se3(euler_pose)
+    return euler6d_to_se3(euler_pose)
 
 def relative_pose(pose1, pose2, pattern="111000"):
     # only return the translation part
@@ -39,7 +39,7 @@ def remove_small_motion(move):
         return Rt_to_SE3(no_move.R, move.t)
     return no_move
 
-def euler_to_se3(euler_6d):
+def euler6d_to_se3(euler_6d):
     t = euler_6d[:3]
     r = euler_6d[3:]
     se3_object = SE3.Trans(t) * SE3.RPY(r, unit='rad')

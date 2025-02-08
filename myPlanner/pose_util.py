@@ -259,6 +259,23 @@ def reverse_sign(i, j):
     i[j] = -i[j]
     return i
 
+def euler6d_to_se3(euler_6d):
+    t = euler_6d[:3]
+    r = euler_6d[3:]
+    se3_object = SE3.Trans(t) * SE3.RPY(r, unit='rad')
+    return se3_object
+
+def se3_to_euler6d(se3_object):
+    translation = se3_object.t
+    rotation = se3_object.rpy(unit='rad')
+    euler_6d = list(translation) + list(rotation)
+    return euler_6d
+
+def pose_to_euler6d(pose):
+    se3_object = pose_to_SE3(pose)
+    return se3_to_euler6d(se3_object)
+
+
 
 if __name__=="__main__":
     folder = 'slam_data/0613-slam-aruco'
