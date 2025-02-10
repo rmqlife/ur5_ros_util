@@ -56,7 +56,7 @@ if __name__=="__main__":
         frame = image_saver.rgb_image
         show_frame = frame.copy() # in case of frame is ruined by painting frame
         depth_frame = image_saver.depth_image
-
+        
         if goal is None:
             goal = dict()
             goal["frame"] = frame.copy()

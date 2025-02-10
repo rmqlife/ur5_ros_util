@@ -11,6 +11,13 @@ import os
 from follow_aruco import framedelay 
 from myArucoStates import  MyArucoStates, match_aruco_state, draw_match_line, build_aruco_state
 
+def se3_norm(se3, t_only=True):
+    if t_only:
+        return np.linalg.norm(se3.t)
+    else:
+        euler = se3_to_euler6d(se3)
+        return np.linalg.norm(euler[:3]) + np.linalg.norm(euler[3:])
+
 if __name__ == "__main__":
     rospy.init_node('pick_aruco', anonymous=True)
     save_data_dir = "data_states/test_goals/"
@@ -25,9 +32,13 @@ if __name__ == "__main__":
 
     # load pkl from save_data_dir
     goal_states = MyArucoStates(os.path.join(save_data_dir, "goal_states.pkl"))
-    history_states = MyArucoStates(os.path.join(save_data_dir, "history_states.pkl"))
-
     goal_state = goal_states.next_state(None)
+
+    matched_states = MyArucoStates(os.path.join(save_data_dir, "matched_states.pkl"))
+    if matched_states.empty():
+        print("init matched states from goal states")
+        for goal in goal_states.states:
+            matched_states.add_state(goal)
 
     while not rospy.is_shutdown():
         frame, depth = image_saver.get_frames()
@@ -39,17 +50,40 @@ if __name__ == "__main__":
         if goal_state is not None and aruco_state is not None:
             draw_match_line(frame, aruco_state, goal_state)
 
-        if aruco_state is not None:
-            history_index = history_states.push_back(aruco_state)
-            if history_index>-1:
-                print("added new history state, index:", history_index)
         
+        if aruco_state is not None:
+            for i, goal in enumerate(goal_states.states):
+                
+                # if state's camera pose is closer than matched state's                
+                camera_move_new = match_aruco_state(goal, aruco_state)
+                
+                if camera_move_new is not None:
+                    matched = matched_states[i]
+                    if matched is None:
+                        camera_move_old = SE3(1e4, 1e4, 1e4)
+                    else:
+                        camera_move_old = match_aruco_state(goal, matched)
+                
+                    # if state's overall pose far from matched state's
+                    if se3_norm(camera_move_new) < se3_norm(camera_move_old):
+                        print("updated matched state for goal", goal.ids)
+                        matched_states.states[i] = aruco_state
+                        
+                    # aruco is moved, update matched state                    
+                    elif se3_norm(camera_move_new) < 0.1:
+                        marker_pose_new = pose_to_SE3(aruco_state.robot_pose) * hand_eye.gripper_move(camera_move_new)
+                        marker_pose_old = pose_to_SE3(matched.robot_pose) * hand_eye.gripper_move(camera_move_old)
+                        if se3_norm(marker_pose_new.inv() * marker_pose_old) > 0.02:
+                            print("aruco is moved, update matched state for goal", goal.ids)
+                            matched_states.states[i] = aruco_state
+
+
         cv2.imshow('Camera', frame)
         key = cv2.waitKey(framedelay) & 0xFF 
     
         if key == ord('q'):
-            print("Saving history states number:", len(history_states.states))
-            history_states.save()
+            print("Saving matched states number:", len(matched_states.states))
+            matched_states.save()
             break
 
         elif key in key_map:
@@ -76,31 +110,14 @@ if __name__ == "__main__":
             if camera_move is None:
                 print("No match found in current frame for goal_state:", goal_state.ids)
                 # try to find a match in history
-                min_norm = 1000
-                min_action = None
-                for h_state in reversed(history_states.states):
-                    camera_move = match_aruco_state(goal_state, h_state)
-                    if camera_move is not None:
-                        gripper_action = hand_eye.gripper_move(camera_move)
-                        from myArucoStates import action_norm
-                        camera_move_norm = action_norm(camera_move)
-                        action = pose_to_SE3(robot_pose).inv() * pose_to_SE3(h_state.robot_pose) * gripper_action
-                        if  camera_move_norm < min_norm:
-                            # compare the min_action distance with the goal_state distance
-                            if min_action is not None:
-                                action_diff = min_action.inv() * action
-                                action_diff = np.linalg.norm(action_diff.t)
-                                print("action difference", action_diff)
-                                if action_diff > 0.02:
-                                    print("aruco is moved, use the latest action")
-                                    break
-                            min_norm = camera_move_norm
-                            min_action = action
-                        
-                print("min action")
-                min_action.printline()
-                robot.step_in_ee(action=min_action, wait=False)
+                matched = matched_states.states[goal_states.index(goal_state)]
+                camera_move = match_aruco_state(matched, goal_state)
+                if camera_move is not None:
+                    gripper_action = hand_eye.gripper_move(camera_move)
+                    action = pose_to_SE3(robot_pose).inv() * pose_to_SE3(matched.robot_pose) * gripper_action
+                    robot.step_in_ee(action=action, wait=False)
                 
+
 
         elif key == ord('g'):
             if aruco_state is None:

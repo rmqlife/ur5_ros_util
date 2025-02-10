@@ -30,6 +30,12 @@ def corners_to_pts(corners):
     return pts
 
 
+
+def action_norm(action):
+    norm = np.array(se3_to_euler6d(action)) 
+    return np.linalg.norm(norm[:3]) + np.linalg.norm(norm[3:])
+
+
 def draw_match_line(frame, state0, state1):
     ids0 = state0.ids
     ids1 = state1.ids
@@ -72,6 +78,23 @@ def match_aruco_state(state0, state1):
         return action
     return None
 
+def aruco_state_dist(state0, state1):
+    action = match_aruco_state(state0, state1)
+    if action is None:
+        return 1e8
+    return np.linalg.norm(action.t) 
+
+
+def find_next(states, current):
+    for state in states:
+        if state > current:
+            return state
+    if len(states)>0:
+        return states[0]
+    return None
+
+
+
 class ArucoState:
     def __init__(self, ids, pts, corners, robot_pose):
         self.ids = ids
@@ -104,17 +127,6 @@ class ArucoState:
         r_norm = np.linalg.norm(e1[3:]-e2[3:])
         return t_norm + r_norm
     
-def find_next(states, current):
-    for state in states:
-        if state > current:
-            return state
-    if len(states)>0:
-        return states[0]
-    return None
-
-def action_norm(action):
-    norm = np.array(se3_to_euler6d(action)) 
-    return np.linalg.norm(norm[:3]) + np.linalg.norm(norm[3:])
 
 class MyArucoStates:
     def __init__(self, filename):
@@ -124,7 +136,15 @@ class MyArucoStates:
         if os.path.exists(filename):
             with open(filename, "rb") as f:
                 self.states = pickle.load(f)
-        
+
+    def __getitem__(self, index):
+        if index < 0 or index >= len(self.states):
+            return None
+        return self.states[index]
+    
+    def empty(self):
+        return len(self.states) == 0
+
     def add_state(self, state):
         self.states.append(state)
 
@@ -140,10 +160,13 @@ class MyArucoStates:
             return self.states[0]
         return find_next(self.states, state)
     
+    
+    def index(self, state):
+        return self.states.index(state)
+    
     def match(self, state):
     # you should build the graph of states to find the nearest state
     # based on the goal state, so only 1 closest and latest state is needed to be stored
-    
         min_dist = 1000
         for h_state in self.states:
             action = match_aruco_state(state, h_state)
@@ -172,14 +195,19 @@ class MyArucoStates:
                 return -1
         self.states.append(state)
         return len(self.states)-1
+
+
 if __name__ == "__main__":
-    filename = "./data_states/recorded_arucos_0208/goal_states.pkl"
+    filename = "./data_states/recorded_arucos_0209/goal_states.pkl"
     states = MyArucoStates(filename)
     
     current_goal = None
-    for i in range(10):
-        current_goal = states.next_state(current_goal)
-        print(current_goal.timestamp)
+    
+    for state in states.states:
 
+        # print(state.timestamp)
+        print(state.ids, states.index(state))
+        # convert state to map:
+        
 
     
