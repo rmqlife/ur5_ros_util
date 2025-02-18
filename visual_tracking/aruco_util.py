@@ -1,14 +1,13 @@
 import cv2
 import cv2.aruco as aruco
 import numpy as np
-from myPlanner import Rt_to_pose
+from myPlanner import Rt_to_pose, pose_to_SE3
 import matplotlib.pyplot as plt
 import math
 
 ARUCO_DICT_NAME = aruco.DICT_4X4_100
-my_aruco_dict = cv2.aruco.getPredefinedDictionary(ARUCO_DICT_NAME)
-
 # Function to detect ArUco markers
+my_aruco_dict = cv2.aruco.getPredefinedDictionary(ARUCO_DICT_NAME)
 
 def detect_aruco(image, draw_flag=False):
     # Convert the image to grayscale
@@ -72,7 +71,6 @@ def estimate_markers_poses(corners, marker_size, intrinsics):
                     [0, intrinsics["fy"], intrinsics["cy"]],
                     [0, 0, 1]], dtype=np.float32)
     distortion = np.zeros((5, 1))  # Assuming no distortion
-    # distortion  = np.array([[ 0.00377581 , 0.00568285 ,-0.00188039, -0.00102468 , 0.02337337]])
     poses = []
     for c in corners:
         ret, rvec, tvec = cv2.solvePnP(marker_points, c, mtx, distortion, False, cv2.SOLVEPNP_EPNP)
@@ -151,6 +149,22 @@ def get_aruco_poses(frame, depth, camera_intrinsics,  default_marker_size, draw_
         if verbose:
             print(f"id: {id}, pose: {pose}, size: {marker_size}")
             print()
+    return poses_dict
+
+def get_aruco_poses_info(frame,  camera_intrinsics,  info_dict,  draw_flag=True, verbose=False):
+    corners, ids = detect_aruco(frame, draw_flag=draw_flag)
+    poses_dict = {}
+    for id, corner in zip(ids, corners):
+        for key in info_dict:
+            if id == info_dict[key]["marker_id"]:
+                marker_size = info_dict[key]["marker_size"]
+                pose = estimate_marker_pose(corner, marker_size=marker_size, intrinsics=camera_intrinsics) 
+                pose = pose_to_SE3(pose)
+                poses_dict[id] = pose
+                if verbose:
+                    print(f"id: {id}, size: {marker_size}")
+                    pose.printline()
+                    
     return poses_dict
 
 

@@ -49,6 +49,7 @@ class MyHandEye:
     
     def gripper_move(self, camera_move):
         return self.T_c2g * camera_move * self.T_c2g.inv()
+    
 
 def compute_model(marker_poses, robot_poses, method='eye_in_hand'):
     if method == 'eye_in_hand':

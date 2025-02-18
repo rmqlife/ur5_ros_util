@@ -16,8 +16,11 @@ class MyImageSaver:
         self.count = 0
         self.folder_path = "data/images"+time.strftime("-%Y%m%d-%H%M%S")
         #wait to receive first image
-        while self.rgb_image is None:
-            rospy.sleep(0.1)
+        start_time = time.time()
+        while time.time() - start_time < 5:
+            if self.rgb_image is not None:
+                break
+            rospy.sleep(1)
             print('waiting for first image')
         print(f'init MyImageSaver at {self.folder_path}')
 

@@ -1,0 +1,27 @@
+{
+    "1": {
+        "aruco_dict": "4x4_100",
+        "marker_id": 1,
+        "marker_size": 0.0258
+    },
+    "2": {
+        "aruco_dict": "4x4_100",
+        "marker_id": 2,
+        "marker_size": 0.0258
+    },
+    "3": {
+        "aruco_dict": "4x4_100",
+        "marker_id": 3,
+        "marker_size": 0.0258
+    },
+    "4": {
+        "aruco_dict": "4x4_100",
+        "marker_id": 4,
+        "marker_size": 0.0258
+    },
+    "5": {
+        "aruco_dict": "4x4_100",
+        "marker_id": 5,
+        "marker_size": 0.0258
+    }
+}
