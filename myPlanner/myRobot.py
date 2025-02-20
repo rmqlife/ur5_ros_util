@@ -5,6 +5,7 @@ from sensor_msgs.msg import JointState
 import numpy as np
 from .pose_util import *
 
+WAIT_TIME = 5
 
 class MyRobot:
     def __init__(self):
@@ -64,7 +65,8 @@ class MyRobot:
         threshold = 1e-4
         if wait:
             # Check if joint positions have been reached
-            while not rospy.is_shutdown():
+            start_time = rospy.Time.now()
+            while not rospy.is_shutdown() and (rospy.Time.now() - start_time).to_sec() < WAIT_TIME:
                 if np.all(np.abs(self.get_joints() - joints) < threshold):
                     break
                 # print('wait', np.abs(current_positions - joint_positions))

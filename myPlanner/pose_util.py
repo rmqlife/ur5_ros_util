@@ -275,7 +275,16 @@ def pose_to_euler6d(pose):
     se3_object = pose_to_SE3(pose)
     return se3_to_euler6d(se3_object)
 
-
+def se3_to_str(se3, deg=True):
+    euler6d = se3_to_euler6d(se3)
+    t = euler6d[:3]
+    r = euler6d[3:]
+    if deg:
+        r = np.degrees(r)
+        rstr = "deg"
+    else:
+        rstr = "rad"
+    return f"xyz(meter): {t[0]:.2f}, {t[1]:.2f}, {t[2]:.2f},  rpy({rstr}): {r[0]:.2f}, {r[1]:.2f}, {r[2]:.2f}"
 
 if __name__=="__main__":
     folder = 'slam_data/0613-slam-aruco'

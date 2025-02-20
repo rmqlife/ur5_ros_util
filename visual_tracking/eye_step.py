@@ -10,6 +10,19 @@ from aruco_util import get_aruco_poses
 from mySensor import load_intrinsics
 from myHandEye import MyHandEye
 
+key_map = {}
+t_move=0.01
+r_move=1
+key_action_map = {
+    ord('w'): SE3.Ty(-t_move),  # +tx
+    ord('s'): SE3.Ty(t_move),  # -tx
+    ord('a'): SE3.Tx(-t_move),  # +ty
+    ord('d'): SE3.Tx(t_move),  # -ty
+    ord('r'): SE3.Tz(-t_move),  # +tz
+    ord('f'): SE3.Tz(t_move),  # -tz
+    # Add more mappings if needed
+}
+
 
 MARKER_SIZE = 0.0258
 framedelay = 1000//20
@@ -20,6 +33,8 @@ if __name__ == "__main__":
     robot = init_robot_with_ik()
     hand_eye = MyHandEye("../config/hand_eye.npz")
     camera_intrinsics = load_intrinsics("../config/camera_intrinsics.json")
+
+
 
     while not rospy.is_shutdown():
         frame, depth = image_saver.get_frames()
@@ -37,18 +52,16 @@ if __name__ == "__main__":
     
         if key == ord('q'):
             break
-        elif key in key_map:
-            code  = key_map[key]
-            print(f"action {code}")
-            action = lookup_action(code)
+        elif key in key_action_map:
+            action = key_action_map[key]
+            if action is not None:
+                print(f"action for key {chr(key)}")
+                action.printline()
+                action = hand_eye.gripper_move(action)
+                print("action in camera frame")
+                action.printline()
 
-            print("action in robot frame")
-            action.printline()
-            action = hand_eye.gripper_move(action)
-            print("action in camera frame")
-            action.printline()
-
-            robot.step_in_ee(action=action, wait=False)
+                robot.step_in_ee(action=action, wait=False)
 
         # measure distance between arucos
         elif key == ord('m'):
