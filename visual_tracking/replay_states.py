@@ -57,13 +57,18 @@ def replay_marker_poses(myEnv, states_to_replay, tcp_id, ref_id):
 
 
 if __name__ == "__main__":
-    states_to_replay = MyStates("./data/push_block_new.pkl").states
+    import sys
+    if len(sys.argv)<2:
+        print("Usage: python replay_states.py <path_to_states>")
+        exit()
+    path = sys.argv[1]
+    states_to_replay = MyStates(path).states
     print(f"Loaded {len(states_to_replay)} states")
-    myEnv = MyEnv("./data/replay_0220.pkl")
+    myEnv = MyEnv(path)
 
 
     # replay the states in Robot c-space
-    # replay_robot_space(myEnv, states_to_replay)
+    replay_robot_space(myEnv, states_to_replay)
 
     # matching marker poses to current frame
-    replay_marker_poses(myEnv, states_to_replay, tcp_id=0, ref_id=3)
+    # replay_marker_poses(myEnv, states_to_replay, tcp_id=0, ref_id=3)

@@ -89,13 +89,16 @@ class MyEnv:
         rospy.init_node('my_env_node')
 
         self.robot = init_robot_with_ik()
-        self.hand_eye = MyHandEye("../config/hand_eye.npz")
-        self.camera_intrinsics = load_intrinsics("../config/camera_intrinsics.json")
         self.image_saver = MyImageSaver(cameraNS='camera')
 
-        #  marker info and postion map
-        with open('marker_info.json', 'r') as f:
+        self.hand_eye = MyHandEye("../config/hand_eye.json")
+
+        with open("../config/camera_intrinsics.json", 'r') as f:
+            self.camera_intrinsics = json.load(f)
+
+        with open('../config/marker_info.json', 'r') as f:
             self.marker_info = json.load(f)
+
         self.id_list = [self.marker_info[key]["marker_id"] for key in self.marker_info]
         self.position_map = PositionMap(id_list=self.id_list, camera_num=1)
 
@@ -119,19 +122,15 @@ class MyEnv:
         return state, frame_draw
            
 if __name__ == "__main__":
-    env = MyEnv("./data/push_block_new.pkl")
+    env = MyEnv("./data/move_ref.pkl")
 
     recording = False
     while True:
         state, frame_draw = env.get_state()
         env.states.push_back(state)
 
-        # 获取marker的pose
-        # Display the image
         cv2.imshow("camera", frame_draw)
-    
         key = cv2.waitKey(1000//60) & 0xFF 
-        # Check if mouse is clicked to toggle recording state
             
         if key == ord('q'):
             env.states.save()

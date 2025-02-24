@@ -12,7 +12,7 @@ from myHandEye import MyHandEye
 
 key_map = {}
 t_move=0.01
-r_move=1
+r_move=0.1
 key_action_map = {
     ord('w'): SE3.Ty(-t_move),  # +tx
     ord('s'): SE3.Ty(t_move),  # -tx
@@ -21,6 +21,12 @@ key_action_map = {
     ord('r'): SE3.Tz(-t_move),  # +tz
     ord('f'): SE3.Tz(t_move),  # -tz
     # Add more mappings if needed
+    ord('1'): SE3.Rx(r_move),
+    ord('!'): SE3.Rx(-r_move),
+    ord('2'): SE3.Ry(r_move),
+    ord('@'): SE3.Ry(-r_move),
+    ord('3'): SE3.Rz(r_move),
+    ord('#'): SE3.Rz(-r_move),
 }
 
 
@@ -28,10 +34,10 @@ MARKER_SIZE = 0.0258
 framedelay = 1000//20
 
 if __name__ == "__main__":
-    rospy.init_node('test_handeye', anonymous=True)
+    rospy.init_node('eye_step', anonymous=True)
     image_saver = MyImageSaver(cameraNS='camera')
     robot = init_robot_with_ik()
-    hand_eye = MyHandEye("../config/hand_eye.npz")
+    hand_eye = MyHandEye("../config/hand_eye.json")
     camera_intrinsics = load_intrinsics("../config/camera_intrinsics.json")
 
 
@@ -47,7 +53,7 @@ if __name__ == "__main__":
                                     draw_flag=True, 
                                     verbose=False)
         
-        cv2.imshow('Camera', frame)
+        cv2.imshow('eye_step', frame)
         key = cv2.waitKey(framedelay) & 0xFF 
     
         if key == ord('q'):
