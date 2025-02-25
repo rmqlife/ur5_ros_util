@@ -2,6 +2,7 @@ from myEnv import MyStates, ArucoState, MyEnv
 from myPlanner.pose_util import se3_to_str
 import rospy
 from follow_aruco import relative_pose
+from spatialmath import SE3
 
 def replay_robot_space(myEnv, states_to_replay):
     for state in states_to_replay:
@@ -15,60 +16,42 @@ def print_marker_ids(states):
         for marker_id in state.marker_poses.keys():
             print(f"marker {marker_id} pose: {se3_to_str(state.marker_poses[marker_id])}")
 
-def replay_marker_poses(myEnv, states_to_replay, tcp_id, ref_id):
+def replay_marker_poses(myEnv, states, tcp_id, ref_id):
     # current my env has markers:
-    for _ in range(10):
+    state = None
+    while state is None:
         state, _ = myEnv.get_state()
-        tcp_pose_new = state.marker_poses.get(tcp_id)
-        ref_pose_new = state.marker_poses.get(ref_id)
         rospy.sleep(1/30)
-    
-    if tcp_pose_new is None:
-        print(f"failed to find tcp_pose of id {tcp_id}")
-        return 
-    
-    if ref_pose_new is None:
-        print(f"failed to find ref_pose of id {ref_id}")
-        return 
-    
+
     ref_pose = None
-    for state in states_to_replay:
-        # check if dst_id is in state
+    for state in states:        
+        state_now, _ = myEnv.get_state()
+        tcp_pose_new = state_now.marker_poses.get(tcp_id)
+        ref_pose_new = state_now.marker_poses.get(ref_id)
         tcp_pose = state.marker_poses.get(tcp_id)
-        if tcp_pose is None:
-            continue
+        ref_pose = state.marker_poses.get(ref_id)
 
-        if ref_id in state.marker_poses:
-            ref_pose = state.marker_poses[ref_id]
-        
-        if ref_pose is not None:
+        if ref_pose is not None and ref_pose_new is not None:
             ref_move = relative_pose(ref_pose, ref_pose_new, pattern="111000")
+        else:
+            ref_move = SE3.Rx(0)
+        if tcp_pose is not None and tcp_pose_new is not None:
             tcp_move = relative_pose(tcp_pose_new, tcp_pose, pattern="111000")
-            action = ref_move * tcp_move
-            myEnv.robot.step(action, wait=True)
-            state, _ = myEnv.get_state()
-            if tcp_id in state.marker_poses:
-                tcp_pose_new = state.marker_poses[tcp_id]
-            else:
-                tcp_pose_new = tcp_pose.copy()
-
-            if ref_id in state.marker_poses:
-                ref_pose_new = state.marker_poses[ref_id]
-
+        else:
+            tcp_move = SE3.Rx(0)
+        action = ref_move * tcp_move
+        myEnv.robot.step(action, wait=True)
 
 if __name__ == "__main__":
     import sys
     if len(sys.argv)<2:
         print("Usage: python replay_states.py <path_to_states>")
         exit()
-    path = sys.argv[1]
-    states_to_replay = MyStates(path).states
-    print(f"Loaded {len(states_to_replay)} states")
-    myEnv = MyEnv(path)
-
-
+    rospy.init_node('replay_states')
+    my_states = MyStates(filename=sys.argv[1])
+    myEnv = MyEnv(is_publisher=False)
+    
+    replay_marker_poses(myEnv, my_states.get_states(), tcp_id=0, ref_id=4)
+    
     # replay the states in Robot c-space
-    replay_robot_space(myEnv, states_to_replay)
-
-    # matching marker poses to current frame
-    # replay_marker_poses(myEnv, states_to_replay, tcp_id=0, ref_id=3)
+    # replay_robot_space(myEnv, my_states.states)

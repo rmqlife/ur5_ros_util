@@ -24,7 +24,7 @@ def visualize_trajectory(states):
     # Convert robot trajectory to 2D
     robot_trajectory_2d = se3_traj_to_2d(robot_trajectory)
 
-    marker_info = json.load(open('marker_info.json', 'r'))
+    marker_info = json.load(open('../config/marker_info.json', 'r'))
     marker_names = {marker_info[key]["marker_id"]: key for key in marker_info}
     print(marker_names)
 
@@ -35,19 +35,14 @@ def visualize_trajectory(states):
             marker_trajectories[marker_id].append(pose)
 
     # Plot robot trajectory
-    robot_x = robot_trajectory_2d[:, 0]
-    robot_y = robot_trajectory_2d[:, 1]
     plt.figure(figsize=(10, 6))
-
-    plt.plot(robot_x, robot_y, label='Robot Trajectory', marker='o')
+    plt.plot(robot_trajectory_2d[:, 0], robot_trajectory_2d[:, 1], label='Robot Trajectory', marker='o')
 
     # # Plot marker trajectories
     for marker_id, trajectory in marker_trajectories.items():
         marker_trajectory_2d = se3_traj_to_2d(trajectory)
-        marker_x = marker_trajectory_2d[:, 0]
-        marker_y = marker_trajectory_2d[:, 1]
         marker_name = marker_names[marker_id]
-        plt.plot(marker_x, marker_y, label=f'Marker {marker_id} {marker_name}', marker='x')
+        plt.plot(marker_trajectory_2d[:, 0], marker_trajectory_2d[:, 1], label=f'Marker {marker_id} {marker_name}', marker='x')
 
     plt.xlabel('X Position')
     plt.ylabel('Y Position')
@@ -78,7 +73,7 @@ def states_prompt(states):
                 marker_trajectories[marker_id] = []
             marker_trajectories[marker_id].append(pose)
 
-    marker_info = json.load(open('marker_info.json', 'r'))
+    marker_info = json.load(open('../config/marker_info.json', 'r'))
     marker_names = {marker_info[key]["marker_id"]: key for key in marker_info}
 
     print("Marker Trajectories 2D:")

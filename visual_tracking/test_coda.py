@@ -15,10 +15,16 @@ def circle_points(center, radius=0.1, num_points=20):
 
     return points
 
-def square_points(center, side_length=0.1, num_points_per_side=0):
+def linear_interpolate(start, end, num_points):
     points = []
-    half_side = side_length / 2
+    for i in range(num_points):
+        t = i / (num_points - 1)
+        point = (1 - t) * start + t * end
+        points.append(point)
+    return points
 
+def square_points(center, side_length, points_per_side):
+    half_side = side_length / 2
     # Define the corners of the square
     corners = [
         np.array([center[0] - half_side, center[1] - half_side, center[2]]),  # Bottom-left
@@ -27,31 +33,30 @@ def square_points(center, side_length=0.1, num_points_per_side=0):
         np.array([center[0] - half_side, center[1] + half_side, center[2]])   # Top-left
     ]
 
-    # Interpolate points between corners
-    for i in range(4):
+    # interpolate points between corners
+    points = []
+    for i in range(len(corners)):
         start = corners[i]
-        end = corners[(i + 1) % 4]
-        for j in range(num_points_per_side):
-            t = j / (num_points_per_side - 1)
-            point = (1 - t) * start + t * end
-            points.append(point)
-
+        end = corners[(i + 1) % len(corners)]
+        points.extend(linear_interpolate(start, end, num_points=points_per_side))
     return points
 
 if __name__ == "__main__":
-    dry_run = True
-    rospy.init_node('test_move', anonymous=False)
+    dry_run = False
+    rospy.init_node('test_coda', anonymous=False)
     robot = init_robot_with_ik()
 
     init_pose = robot.get_pose()
-    print("init pose at", init_pose)
+    print("init pose at")
+    init_pose.printline()
 
-    center = init_pose[:3]
-    square_points = square_points(center, side_length=0.2, num_points_per_side=0)
+
+    center = init_pose.t
+    square_points = square_points(center, side_length=0.2, points_per_side=3)
 
     for point in square_points:
-        pose = np.concatenate([point, init_pose[3:]])
-        pose = pose_to_SE3(pose)
+        pose = init_pose.copy()
+        pose.t = point
         pose.printline()
         if not dry_run:
-            robot.goto_pose(pose, dry_run=False, coef=3)
+            robot.goto_pose(pose, wait=True, coef=3)

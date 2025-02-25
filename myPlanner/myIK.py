@@ -50,7 +50,7 @@ def circle_pose(center, toward,  radius, num_points):
 
     return np.array(points)
 
-
+# using roboticstoolbox SE3 class
 class MyIK:
     def __init__(self):
         self.robot = rtb.models.UR5()
@@ -58,52 +58,11 @@ class MyIK:
     def set_base(self, base_pose):
         self.robot.base = base_pose
 
-    def fk_se3(self, q):
+    def fk(self, q):
         return self.robot.fkine(q)
 
-    def ik_se3(self, se3, q):
+    def ik(self, se3, q):
         return self.robot.ikine_LM(se3, q0=q).q
-
-    def fk(self, q):
-        return SE3_to_pose(self.fk_se3(q))
-
-    def ik(self, pose, q):
-        return self.ik_se3(pose_to_SE3(pose), q)
-
-    def ik_point(self, point, q):
-        current_se3 = self.robot.fkine(q)
-        current_se3.t = [0,0,0]
-        desired_pose = SE3(point) @ SE3(current_se3)
-        return  self.robot.ikine_LM(desired_pose, q0=q).q
-        
-    def plan_trajectory(self, poses, q, vel_threshold=0.02):
-        poses = np.array(poses)
-        traj = None
-        if poses.shape[1]==3:
-            # it is a points
-            init_pose = self.fk(q)
-            poses = append_vector(poses, init_pose[3:])
-
-        for i in range(len(poses)-1):
-            start_pose = poses[i]
-            end_pose = poses[i+1]
-            # linear velocity 
-            vel = np.linalg.norm(np.array(start_pose[:3])-np.array(end_pose[:3]))
-            if vel<vel_threshold:
-                num_steps=1
-            else:
-                print('vel threshold', vel_threshold)
-                num_steps=int(math.floor(vel/vel_threshold))
-            
-            start_joint_angles = self.ik(start_pose, q)
-        
-            end_joint_angles = self.ik(end_pose, q)
-            traj_segment = rtb.jtraj(start_joint_angles, end_joint_angles, num_steps)
-            if traj is None:
-                traj = traj_segment.q
-            else:
-                traj = np.concatenate((traj, traj_segment.q), axis=0)
-        return traj
 
     def show_traj(self, traj, loop=True):
         self.robot.plot(traj, backend='pyplot', loop=loop)

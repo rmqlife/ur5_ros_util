@@ -36,7 +36,7 @@ class MyRobot:
     def get_joints(self):
         return self.joint_positions
 
-    def move_joints_smooth(self, joints, coef=10, joint_thresh=1, wait=False):
+    def move_joints_smooth(self, joints:list, coef=10, joint_thresh=1, wait=False): # wait in seconds
         max_joint_movement = np.max(np.abs(joints - self.get_joints()))
         if max_joint_movement < joint_thresh:
             self.move_joints(joints, duration=coef*max_joint_movement, wait=wait)
@@ -44,7 +44,7 @@ class MyRobot:
         print('Joint movement exceeds joint threshold: ', joint_thresh)
         return True
 
-    def move_joints(self, joints, duration=0.1, wait=True):
+    def move_joints(self, joints:list, duration=0.1, wait=True):    
         # Create a JointTrajectory message
         joint_traj = JointTrajectory()
 
@@ -63,7 +63,7 @@ class MyRobot:
         self.pub.publish(joint_traj)  # Call the publish method
 
         threshold = 1e-4
-        if wait:
+        if wait>0:
             # Check if joint positions have been reached
             start_time = rospy.Time.now()
             while not rospy.is_shutdown() and (rospy.Time.now() - start_time).to_sec() < WAIT_TIME:

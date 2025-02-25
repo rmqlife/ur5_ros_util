@@ -41,8 +41,7 @@ class PositionMap:
         Args:
             id_list: List of marker IDs to track
         """
-        self.position_map = {}
-
+        self.marker_poses = {}
         self.camera_num = camera_num
         self.filter_list = {id: KalmenFilter() for id in id_list}
 
@@ -56,28 +55,29 @@ class PositionMap:
         self.filter_list[marker_id].Kalman_Filter()
         return self.filter_list[marker_id].get_pose()
 
+    # what if the marker_pose is None? Partial observation problem
     def update_position(self, marker_id, marker_pose, verbose=False):
         """Update marker position if significantly different from previous position."""        
         filtered_pose = self.filter_pose(marker_id, marker_pose)
         # if not changed position, return -1
-        if (marker_id in self.position_map and 
-            self.position_map[marker_id] is not None and
-            same_position(self.position_map[marker_id], filtered_pose)):
+        if (marker_id in self.marker_poses and 
+            self.marker_poses[marker_id] is not None and
+            same_position(self.marker_poses[marker_id], filtered_pose)):
             return -1
         else:
-            self.position_map[marker_id] = filtered_pose
+            self.marker_poses[marker_id] = filtered_pose
             if verbose:
                 print(f"Updated position for marker {marker_id}:")
                 filtered_pose.printline()
             return 1
 
     def get_position(self, marker_id):
-        return self.position_map[marker_id]
+        return self.marker_poses[marker_id]
     
     def __str__(self):
         """Return a string representation of the current positions of all tracked markers."""
         position_str = "Position Map:\n"
-        for marker_id, pose in self.position_map.items():
+        for marker_id, pose in self.marker_poses.items():
             position_str += f"ID: {marker_id} \n {se3_to_str(pose)}\n"
         return position_str
 

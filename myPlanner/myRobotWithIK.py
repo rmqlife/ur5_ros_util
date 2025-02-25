@@ -12,28 +12,23 @@ def angle_transfer(joints1, joints2):
             joints2[i] += 2 * np.pi
     return joints2
 
-
+# using roboticstoolbox SE3 class
 class MyRobotWithIK(MyRobot):
-    def __init__(self, myIK):
+    def __init__(self, myIK: MyIK):
         self.myIK = myIK
         super().__init__()
-
 
     def get_pose(self):
         return self.myIK.fk(super().get_joints())
     
-    def get_pose_se3(self):
-        return pose_to_SE3(self.get_pose())
-    
-    # in SE3 format
-    def goto_pose(self, pose, wait, coef=3):
+    def goto_pose(self, pose:SE3, wait, coef=3):
         joints = super().get_joints()
-        joints_star = self.myIK.ik_se3(pose, q=joints)
+        joints_star = self.myIK.ik(pose, q=joints)
         # compute the difference between joints and joints_star
         joints_star = angle_transfer(joints, joints_star)
-        return super().move_joints_smooth(joints_star, coef=coef, joint_thresh = 2, wait=wait)
+        return super().move_joints_smooth(joints_star, coef=coef, joint_thresh=2, wait=wait)
 
-    def step_in_ee(self, action, wait):
+    def step_in_ee(self, action:SE3, wait:bool):
         """
         relative move in ee frame
         """
@@ -41,13 +36,12 @@ class MyRobotWithIK(MyRobot):
         pose_se3_new =  pose_se3 * action # right multiply
         return self.goto_pose(pose_se3_new, wait)
 
-
-    def step(self, action, wait, coef=3):
+    def step(self, action:SE3, wait:bool, coef=3):
         '''
         if wait ==True:
             wait until reach targets
         '''
-        pose_se3 = pose_to_SE3(self.get_pose())
+        pose_se3 = self.get_pose()
         # print('action print'), action.printline()
         pose_se3_new = action * pose_se3  #action is based on base frame
         pose_se3_new.t = pose_se3.t + action.t
@@ -56,30 +50,6 @@ class MyRobotWithIK(MyRobot):
             return pose_se3_new
         else:
             return pose_se3
-    
-    def step_duration(self, action, duration):
-        pose_se3 = pose_to_SE3(self.get_pose())
-        # print('action print'), action.printline()
-        pose_se3_new = action * pose_se3  #action is based on base frame
-        pose_se3_new.t = pose_se3.t + action.t
-        
-        joints = super().get_joints()
-        joints_star = self.myIK.ik_se3(pose_se3_new, q=joints)
-        # compute the difference between joints and joints_star
-        joints_star = angle_transfer(joints, joints_star)
-        return super().move_joints(joints_star, duration=duration, wait=False)
-
-
-    def goto_poses(self, poses, dry_run, coef=3):
-        joints = super().get_joints()
-        traj = self.myIK.plan_trajectory(poses, joints)
-        if dry_run:
-            self.myIK.show_traj(traj, loop=dry_run)
-        else:
-            for joints_star in traj:
-                joints = super().get_joints()
-                super().move_joints_smooth(joints_star, coef=coef, wait=False)
-
 
 def init_robot():
     return MyRobotWithIK(MyIK())

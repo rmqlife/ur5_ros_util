@@ -1,6 +1,7 @@
 from .myBag import *
-from .pose_util import pose_to_SE3
+from .pose_util import SE3_to_pose, pose_to_SE3
 from .myRobotWithIK import init_robot
+from .pose_util import SE3
 
 def build_bounding_box(filename = "data/boundingbox_traj.json", save_filename = "../config/boundingbox.json"):
     mybag = MyBag(filename)
@@ -27,20 +28,21 @@ class MyBound:
         self.upper = upper
         self.box_dim = box_dim
 
-    
-    def correct_pose_within_bounds(self, pose, tolerance=0.02):
+    # pose is a SE3 object
+    def correct_pose_within_bounds(self, pose:SE3, tolerance=0.02):
         """Correct the pose to stay within the given bounds."""
-        corrected_pose = pose.copy()
+        corrected_pose = SE3_to_pose(pose.copy())
         for i in range(self.box_dim):
             if corrected_pose[i] < self.lower[i]:
                 corrected_pose[i] = self.lower[i]+tolerance
             elif corrected_pose[i] > self.upper[i]:
                 corrected_pose[i] = self.upper[i]-tolerance
-        return corrected_pose
+        return pose_to_SE3(corrected_pose)  
 
-    def in_the_box(self, pose):
+    def in_the_box(self, pose:SE3):
         ret = True
         out_dims = []
+        pose = SE3_to_pose(pose)
         for i in range(self.box_dim):
             if self.lower[i] > pose[i] or self.upper[i]< pose[i]:
                 ret = False
