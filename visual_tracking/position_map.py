@@ -11,7 +11,7 @@ from mySensor import MyImageSaver, load_intrinsics
 from myHandEye import MyHandEye
 from aruco_util import get_aruco_poses_info     
 
-def same_position(pose1, pose2,  t_threshold=0.02, rad_threshold=np.pi/2):
+def same_position(pose1, pose2,  t_threshold=0.02, rad_threshold=0.2):
     """
     Compare two poses to determine if they are effectively the same position.
     

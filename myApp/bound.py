@@ -1,5 +1,5 @@
 import rospy
-from myPlanner import MyBag, MyBound, init_robot_with_ik, pose_to_SE3
+from myPlanner import MyBag, MyBound, init_robot_with_ik, pose_to_SE3, se3_to_str
 
 def load_boundingbox(bound_filename):
     mybag = MyBag(bound_filename)
@@ -24,8 +24,8 @@ if __name__=="__main__":
         if not bound.in_the_box(pose):
             # move to the bounds
             corrected_pose = bound.correct_pose_within_bounds(pose, tolerance=0.003)
-            print('corrected pose', corrected_pose)
-            print('current pose', robot.get_pose())
+            print('corrected pose', se3_to_str(corrected_pose))
+            print('current pose', se3_to_str(pose))
             robot.hold(0.5)
-            robot.goto_pose(pose=pose_to_SE3(corrected_pose), wait=False, coef=1)
+            robot.goto_pose(pose=corrected_pose, wait=False, coef=1)
             rospy.sleep(0.1)

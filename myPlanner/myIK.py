@@ -55,8 +55,8 @@ class MyIK:
     def __init__(self):
         self.robot = rtb.models.UR5()
     
-    def set_base(self, base_pose):
-        self.robot.base = base_pose
+    # def set_base(self, base_pose):
+    #     self.robot.base = base_pose
 
     def fk(self, q):
         return self.robot.fkine(q)

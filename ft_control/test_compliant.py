@@ -130,5 +130,5 @@ if __name__ == "__main__":
             print(f"Force detected: {force}")
             action = model.predict(force)
             print(f"Predicted action: {action}")
-            action *= force_norm * 0.01
-            robot.step_duration(action=pose_to_SE3(action), duration=0.1)
+            action *= force_norm * 0.08
+            robot.step(action=pose_to_SE3(action), wait=False, coef=1)

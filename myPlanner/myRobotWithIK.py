@@ -32,24 +32,22 @@ class MyRobotWithIK(MyRobot):
         """
         relative move in ee frame
         """
-        pose_se3 = pose_to_SE3(self.get_pose())
+        pose_se3 = self.get_pose()
         pose_se3_new =  pose_se3 * action # right multiply
         return self.goto_pose(pose_se3_new, wait)
 
-    def step(self, action:SE3, wait:bool, coef=3):
+    def step(self, action:SE3, wait:bool):
         '''
         if wait ==True:
             wait until reach targets
         '''
-        pose_se3 = self.get_pose()
-        # print('action print'), action.printline()
-        pose_se3_new = action * pose_se3  #action is based on base frame
-        pose_se3_new.t = pose_se3.t + action.t
-        
-        if self.goto_pose(pose_se3_new, wait, coef=coef)==True:
-            return pose_se3_new
-        else:
-            return pose_se3
+        pose = self.get_pose()
+        # pose_new = action * pose
+        R = (action * pose).R
+        t = action.t + pose.t
+        pose_new = Rt_to_SE3(R, t)
+        return self.goto_pose(pose_new, wait)
+
 
 def init_robot():
     return MyRobotWithIK(MyIK())

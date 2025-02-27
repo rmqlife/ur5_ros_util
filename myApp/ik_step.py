@@ -22,7 +22,7 @@ key_map = {
     ord('6'): 6    # 6
 }
 
-def lookup_action(code, t_move=0.005, r_move=1):
+def lookup_action(code, t_move=0.03, r_move=1):
     if abs(code)<=3:
         movement = t_move * np.sign(code)
     else:
@@ -68,6 +68,4 @@ if __name__ == "__main__":
             code  = key_map[key]
             print(f"action {code}")
             action = lookup_action(code)
-            se3_pose = robot.step(action=action, wait=False)
-            se3_pose.printline()
-            image_saver.record()
+            robot.step(action=action, wait=False)
