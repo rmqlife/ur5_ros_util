@@ -4,6 +4,7 @@ from scipy.spatial.transform import Rotation
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from spatialmath import SE3
+from spatialmath.base import trnorm
 
 unit_vector = [1,0,0]
 
@@ -285,6 +286,29 @@ def se3_to_str(se3, deg=True):
     else:
         rstr = "rad"
     return f"xyz(meter): {t[0]:.2f}, {t[1]:.2f}, {t[2]:.2f},  rpy({rstr}): {r[0]:.2f}, {r[1]:.2f}, {r[2]:.2f}"
+
+def same_position(pose1, pose2,  t_threshold=0.02, rad_threshold=0.4):
+    """
+    Compare two poses to determine if they are effectively the same position.
+    
+    Args:
+        pose1, pose2: Marker poses to compare
+        angle_threshold: Maximum angle difference in radians (default: 0.1)
+        translation_threshold: Maximum translation difference in meters (default: 0.01)
+    
+    Returns:
+        bool: True if poses are considered same, False otherwise
+    """
+    if pose1 is None and pose2 is None:
+        return True
+    if pose1 is None or pose2 is None:
+        return False
+    R_diff = np.dot(pose1.R.T, pose2.R)
+    angle = np.arccos(np.clip((np.trace(R_diff) - 1) / 2, -1.0, 1.0))
+    translation_norm = np.linalg.norm(pose1.t - pose2.t)
+    return angle < rad_threshold and translation_norm < t_threshold
+
+
 
 if __name__=="__main__":
     folder = 'slam_data/0613-slam-aruco'

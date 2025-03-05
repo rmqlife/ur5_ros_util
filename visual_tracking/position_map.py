@@ -1,36 +1,12 @@
 import cv2
-import numpy as np
 import json
-from spatialmath import SE3
-from spatialmath.base import trnorm
 import numpy as np
-from kalman_filter import KalmenFilter
 import rospy
-from myPlanner import init_robot_with_ik, se3_to_str
+from myPlanner import init_robot_with_ik, se3_to_str, same_position
 from mySensor import MyImageSaver, load_intrinsics
-from myHandEye import MyHandEye
-from aruco_util import get_aruco_poses_info     
-
-def same_position(pose1, pose2,  t_threshold=0.02, rad_threshold=0.2):
-    """
-    Compare two poses to determine if they are effectively the same position.
-    
-    Args:
-        pose1, pose2: Marker poses to compare
-        angle_threshold: Maximum angle difference in radians (default: 0.1)
-        translation_threshold: Maximum translation difference in meters (default: 0.01)
-    
-    Returns:
-        bool: True if poses are considered same, False otherwise
-    """
-    if pose1 is None and pose2 is None:
-        return True
-    if pose1 is None or pose2 is None:
-        return False
-    R_diff = np.dot(pose1.R.T, pose2.R)
-    angle = np.arccos(np.clip((np.trace(R_diff) - 1) / 2, -1.0, 1.0))
-    translation_norm = np.linalg.norm(pose1.t - pose2.t)
-    return angle < rad_threshold and translation_norm < t_threshold
+from visual_tracking.myHandEye import MyHandEye
+from visual_tracking.aruco_util import get_aruco_poses_info     
+from visual_tracking.kalman_filter import KalmenFilter
 
 
 class PositionMap:

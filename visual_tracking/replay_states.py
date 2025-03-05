@@ -4,6 +4,7 @@ import rospy
 from follow_aruco import relative_pose
 from spatialmath import SE3
 import numpy as np
+from position_map import same_position
 
 def replay_robot_space(myEnv, states_to_replay):
     for state in states_to_replay:
@@ -23,7 +24,7 @@ def action_add(action1, action2):
     action_new.t = action1.t + action2.t
     return action_new
 
-def replay_marker_poses(myEnv, states, tcp_id, ref_id):
+def replay_marker_poses(myEnv:MyEnv, states, tcp_id=-1, ref_id=-1):
     # current my env has markers:
     state = None
     while state is None:
@@ -50,11 +51,12 @@ def replay_marker_poses(myEnv, states, tcp_id, ref_id):
         else:
             tcp_move = relative_pose(robot_pose_new, robot_pose, pattern=pose_pattern)
         
-        #print(f"ref_move: {se3_to_str(ref_move)}")
-        #print(f"tcp_move: {se3_to_str(tcp_move)}")
-        desired_pose = ref_move * tcp_move * myEnv.robot.get_pose()
-        print(f"desired_pose: {se3_to_str(desired_pose)}")
-        myEnv.robot.goto_pose(desired_pose, wait=True)
+        desired_pose = ref_move * tcp_move * robot_pose_new
+        pose_error = relative_pose(desired_pose, robot_pose_new, pattern=pose_pattern)
+        print(f"pose_error: {se3_to_str(pose_error)}")
+
+        if not same_position(pose_error, SE3.Rx(0), t_threshold=0.02, rad_threshold=0.2):
+            myEnv.robot.goto_pose(desired_pose, wait=True)
 
 if __name__ == "__main__":
     import sys

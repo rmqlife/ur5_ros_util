@@ -1,14 +1,14 @@
-from position_map import PositionMap
 from mySensor import MyImageSaver, load_intrinsics
-from myHandEye import MyHandEye
-from myPlanner import init_robot_with_ik, SE3_to_pose, pose_to_SE3, se3_to_str
-from aruco_util import get_aruco_poses_info
+from myPlanner import init_robot_with_ik, SE3_to_pose, pose_to_SE3, se3_to_str, same_position
+from visual_tracking.position_map import PositionMap
+from visual_tracking.aruco_util import get_aruco_poses_info
+from visual_tracking.myHandEye import MyHandEye
+
 import json
 import numpy as np
 import rospy
 import cv2
 import time
-from position_map import same_position
 import pickle
 import os
 from std_msgs.msg import String, Float64MultiArray
@@ -25,7 +25,7 @@ class ArucoState:
         self.robot_pose = robot_pose
         self.marker_poses = marker_poses
         self.timestamp = get_timestamp()
-        
+
     def __gt__(self, other):
         return self.timestamp > other.timestamp
 
@@ -102,7 +102,6 @@ class MyEnv:
     def __init__(self, is_publisher):
         self.robot = init_robot_with_ik()
         self.image_saver = MyImageSaver(cameraNS='camera')
-
         self.hand_eye = MyHandEye("../config/hand_eye.json")
 
         with open("../config/camera_intrinsics.json", 'r') as f:
